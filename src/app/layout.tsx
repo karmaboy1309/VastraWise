@@ -1,13 +1,17 @@
+import type { Metadata } from 'next'
 import './globals.css'
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export const metadata: Metadata = {
+  title: 'VastraWise – Rental Manager',
+  description: 'Modern clothing rental management platform for tracking outfits, billing, customers, and analytics.',
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+      </body>
     </html>
   )
 }
