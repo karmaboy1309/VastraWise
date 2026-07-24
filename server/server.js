@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -20,15 +21,19 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser()); // Parse HTTP-only cookies (for refresh token)
 
+// ── Serve uploaded images publicly ─────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ── Public Auth Routes (no JWT required) ─────────────────────
 // Must be mounted BEFORE the protected routes below
 app.use('/api/auth', require('./routes/authRoutes'));
 
-// ── Protected API Routes (JWT required via route-level middleware) ─────────────
+// ── Protected API Routes (JWT required via route-level middleware) ──────────────────
 app.use('/api/outfits', require('./routes/outfitRoutes'));
 app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/api/invoices', require('./routes/invoiceRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
 
 // ── Health check (public) ────────────────────────────────────
 app.get('/api/health', (req, res) => {
