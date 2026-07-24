@@ -170,3 +170,26 @@ export async function changePasswordAPI(currentPassword: string, newPassword: st
         body: JSON.stringify({ currentPassword, newPassword }),
     })
 }
+
+// ── UPLOAD ────────────────────────────────────────────────────────────────────
+// Sends a multipart/form-data request — does NOT use apiFetch (which sets Content-Type: JSON)
+export async function uploadImageAPI(file: File): Promise<{ url: string }> {
+    const formData = new FormData()
+    formData.append('image', file)
+
+    const headers: Record<string, string> = {}
+    if (_accessToken) headers['Authorization'] = `Bearer ${_accessToken}`
+
+    const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: formData,
+    })
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }))
+        throw new Error(err.error || `Upload failed: ${res.status}`)
+    }
+    return res.json()
+}

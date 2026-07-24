@@ -1,8 +1,9 @@
 "use client"
-import React, { useState } from 'react'
-import { Box, TrendingUp, IndianRupee, Plus, X, Eye, Edit2, Trash2, Package } from 'lucide-react'
+import React, { useState, useRef, useCallback } from 'react'
+import { Box, TrendingUp, IndianRupee, Plus, X, Eye, Edit2, Trash2, Package, Upload, ImageIcon, Link } from 'lucide-react'
 import { Outfit } from '../../lib/data'
 import type { UserRole } from '../../lib/auth'
+import { uploadImageAPI } from '../../lib/api'
 
 interface InventoryPageProps {
     outfits: Outfit[]
@@ -42,6 +43,11 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
 
     const [form, setForm] = useState<Outfit>(outfit ? { ...outfit } : blank)
     const [errors, setErrors] = useState<Record<string, string>>({})
+    const [imageTab, setImageTab] = useState<'upload' | 'url'>('upload')
+    const [uploading, setUploading] = useState(false)
+    const [dragOver, setDragOver] = useState(false)
+    const [uploadError, setUploadError] = useState('')
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     function set(k: keyof Outfit, v: any) {
         setForm(f => ({ ...f, [k]: v }))
@@ -52,9 +58,35 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
         const e: Record<string, string> = {}
         if (!form.name.trim()) e.name = 'Name is required'
         if (!form.rentPrice || form.rentPrice <= 0) e.rentPrice = 'Valid price required'
-        if (!form.imageUrl.trim()) e.imageUrl = 'Image URL is required'
+        if (!form.imageUrl.trim()) e.imageUrl = 'Please upload a photo or paste an image URL'
         return e
     }
+
+    async function handleFileUpload(file: File) {
+        if (!file.type.startsWith('image/')) {
+            setUploadError('Please select an image file (jpg, png, webp, gif).'); return
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            setUploadError('Image must be under 5 MB.'); return
+        }
+        setUploading(true)
+        setUploadError('')
+        try {
+            const { url } = await uploadImageAPI(file)
+            set('imageUrl', url)
+        } catch (err: unknown) {
+            setUploadError(err instanceof Error ? err.message : 'Upload failed. Try again.')
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault()
+        setDragOver(false)
+        const file = e.dataTransfer.files[0]
+        if (file) handleFileUpload(file)
+    }, [])
 
     function handleSave() {
         const e = validate()
@@ -111,9 +143,147 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
                     </div>
                 </div>
 
+                {/* ── Image Section ───────────────────────── */}
                 <div className="form-group">
-                    <label className="form-label">Image URL *</label>
-                    <input className="form-input" value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)} placeholder="https://..." />
+                    <label className="form-label">Outfit Photo *</label>
+
+                    {/* Tab switcher */}
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                        {(['upload', 'url'] as const).map(tab => (
+                            <button
+                                key={tab}
+                                type="button"
+                                onClick={() => setImageTab(tab)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 6,
+                                    padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                                    cursor: 'pointer', transition: 'all 0.15s',
+                                    background: imageTab === tab ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
+                                    border: imageTab === tab ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                                    color: imageTab === tab ? '#a5b4fc' : 'var(--text-muted)',
+                                }}
+                            >
+                                {tab === 'upload' ? <Upload size={13} /> : <Link size={13} />}
+                                {tab === 'upload' ? 'Upload Photo' : 'Image URL'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {imageTab === 'upload' ? (
+                        <div>
+                            {/* Drop zone */}
+                            <div
+                                onDrop={handleDrop}
+                                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                                onDragLeave={() => setDragOver(false)}
+                                onClick={() => !uploading && fileInputRef.current?.click()}
+                                style={{
+                                    border: `2px dashed ${dragOver ? '#6366f1' : form.imageUrl ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                                    borderRadius: 12,
+                                    padding: form.imageUrl ? '0' : '32px 20px',
+                                    textAlign: 'center',
+                                    cursor: uploading ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s',
+                                    background: dragOver ? 'rgba(99,102,241,0.07)' : 'rgba(255,255,255,0.02)',
+                                    overflow: 'hidden',
+                                    position: 'relative',
+                                    minHeight: form.imageUrl ? 160 : 'auto',
+                                }}
+                            >
+                                {form.imageUrl ? (
+                                    /* Preview */
+                                    <>
+                                        <img
+                                            src={form.imageUrl}
+                                            alt="Preview"
+                                            style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block' }}
+                                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                        />
+                                        <div style={{
+                                            position: 'absolute', inset: 0,
+                                            background: 'rgba(0,0,0,0.45)',
+                                            display: 'flex', flexDirection: 'column',
+                                            alignItems: 'center', justifyContent: 'center',
+                                            opacity: 0, transition: 'opacity 0.2s',
+                                            color: '#fff', fontSize: 13, fontWeight: 600, gap: 6,
+                                        }}
+                                            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                                            onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+                                        >
+                                            <Upload size={20} />
+                                            Click or drop to replace
+                                        </div>
+                                    </>
+                                ) : uploading ? (
+                                    /* Uploading spinner */
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, color: 'var(--text-muted)' }}>
+                                        <div style={{ width: 32, height: 32, border: '3px solid rgba(99,102,241,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                                        <span style={{ fontSize: 13 }}>Uploading…</span>
+                                        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                                    </div>
+                                ) : (
+                                    /* Empty state */
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: 'var(--text-muted)' }}>
+                                        <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <ImageIcon size={22} style={{ color: '#6366f1' }} />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 3 }}>
+                                                {dragOver ? '📸 Drop photo here!' : 'Click or drag & drop photo'}
+                                            </div>
+                                            <div style={{ fontSize: 12 }}>JPG, PNG, WEBP or GIF · Max 5 MB</div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f) }}
+                            />
+
+                            {uploadError && (
+                                <p style={{ color: '#ef4444', fontSize: 12, marginTop: 6 }}>{uploadError}</p>
+                            )}
+                            {form.imageUrl && !uploading && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
+                                    <span style={{ fontSize: 12, color: '#6ee7b7' }}>Photo uploaded successfully!</span>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); set('imageUrl', '') }}
+                                        style={{ marginLeft: 'auto', fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        /* URL input fallback */
+                        <div>
+                            <input
+                                className="form-input"
+                                value={form.imageUrl}
+                                onChange={e => set('imageUrl', e.target.value)}
+                                placeholder="https://example.com/image.jpg"
+                            />
+                            {form.imageUrl && (
+                                <div style={{ marginTop: 10, borderRadius: 10, overflow: 'hidden', height: 100 }}>
+                                    <img
+                                        src={form.imageUrl}
+                                        alt="Preview"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {errors.imageUrl && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.imageUrl}</p>}
                 </div>
 
@@ -124,7 +294,9 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
 
                 <div className="form-actions">
                     <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-primary" onClick={handleSave}>{isEdit ? 'Save Changes' : 'Add Outfit'}</button>
+                    <button className="btn btn-primary" onClick={handleSave} disabled={uploading}>
+                        {uploading ? 'Uploading…' : isEdit ? 'Save Changes' : 'Add Outfit'}
+                    </button>
                 </div>
             </div>
         </div>
