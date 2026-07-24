@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { Box, TrendingUp, IndianRupee, Plus, X, Eye, Edit2, Trash2, Package } from 'lucide-react'
 import { Outfit } from '../../lib/data'
+import type { UserRole } from '../../lib/auth'
 
 interface InventoryPageProps {
     outfits: Outfit[]
@@ -9,6 +10,7 @@ interface InventoryPageProps {
     onUpdateOutfit: (o: Outfit) => void
     onDeleteOutfit: (id: string) => void
     searchQuery: string
+    userRole?: UserRole
 }
 
 const CATEGORIES = ['Sherwani', 'Saree', 'Lehenga', 'Kurta', 'Suit', 'Other']
@@ -178,9 +180,6 @@ function DetailModal({ outfit, onClose, onEdit, onDelete }: DetailModalProps) {
                 )}
 
                 <div className="form-actions">
-                    <button className="btn btn-danger btn-sm" onClick={() => { onDelete(); onClose() }}>
-                        <Trash2 style={{ width: 14, height: 14 }} /> Delete
-                    </button>
                     <div style={{ flex: 1 }} />
                     <button className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
                     <button className="btn btn-primary btn-sm" onClick={onEdit}>
@@ -192,7 +191,8 @@ function DetailModal({ outfit, onClose, onEdit, onDelete }: DetailModalProps) {
     )
 }
 
-export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, onDeleteOutfit, searchQuery }: InventoryPageProps) {
+export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, onDeleteOutfit, searchQuery, userRole }: InventoryPageProps) {
+    const isAdmin = userRole === 'admin' || !userRole
     const [showAdd, setShowAdd] = useState(false)
     const [editOutfit, setEditOutfit] = useState<Outfit | null>(null)
     const [viewOutfit, setViewOutfit] = useState<Outfit | null>(null)
@@ -301,7 +301,7 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
                                     <div className="outfit-actions">
                                         <button className="btn-icon" title="View" onClick={() => setViewOutfit(outfit)}><Eye /></button>
                                         <button className="btn-icon" title="Edit" onClick={() => { setEditOutfit(outfit); setShowAdd(true) }}><Edit2 /></button>
-                                        <button className="btn-icon" title="Delete" onClick={() => onDeleteOutfit(outfit.id)} style={{ color: '#ef4444' }}><Trash2 /></button>
+                                        {isAdmin && <button className="btn-icon" title="Delete" onClick={() => onDeleteOutfit(outfit.id)} style={{ color: '#ef4444' }}><Trash2 /></button>}
                                     </div>
                                 </div>
                             </div>

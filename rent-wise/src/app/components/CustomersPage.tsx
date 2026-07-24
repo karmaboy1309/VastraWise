@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { Users, TrendingUp, IndianRupee, Mail, Phone, MapPin, Plus, X, Eye, Edit2, Trash2 } from 'lucide-react'
 import { Customer, Invoice } from '../../lib/data'
+import type { UserRole } from '../../lib/auth'
 
 interface CustomersPageProps {
     customers: Customer[]
@@ -10,6 +11,7 @@ interface CustomersPageProps {
     onUpdateCustomer: (c: Customer) => void
     onDeleteCustomer: (id: string) => void
     searchQuery: string
+    userRole?: UserRole
 }
 
 function fmtPrice(n: number) {
@@ -211,7 +213,8 @@ function CustomerDetailModal({ customer, invoices, onClose, onEdit, onDelete }: 
     )
 }
 
-export default function CustomersPage({ customers, invoices, onAddCustomer, onUpdateCustomer, onDeleteCustomer, searchQuery }: CustomersPageProps) {
+export default function CustomersPage({ customers, invoices, onAddCustomer, onUpdateCustomer, onDeleteCustomer, searchQuery, userRole }: CustomersPageProps) {
+    const isAdmin = userRole === 'admin' || !userRole
     const [showModal, setShowModal] = useState(false)
     const [editCustomer, setEditCustomer] = useState<Customer | null>(null)
     const [viewCustomer, setViewCustomer] = useState<Customer | null>(null)
@@ -301,7 +304,7 @@ export default function CustomersPage({ customers, invoices, onAddCustomer, onUp
                                 </div>
                                 <div style={{ display: 'flex', gap: 4 }}>
                                     <button className="btn-icon" title="Edit" onClick={() => { setEditCustomer(c); setShowModal(true) }}><Edit2 /></button>
-                                    <button className="btn-icon" title="Delete" onClick={() => onDeleteCustomer(c.id)} style={{ color: '#ef4444' }}><Trash2 /></button>
+                                    {isAdmin && <button className="btn-icon" title="Delete" onClick={() => onDeleteCustomer(c.id)} style={{ color: '#ef4444' }}><Trash2 /></button>}
                                 </div>
                             </div>
 
