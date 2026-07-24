@@ -154,3 +154,28 @@ exports.update = async (req, res) => {
     }
 };
 
+// @desc    Delete invoice + restore outfit to 'available'
+// @route   DELETE /api/invoices/:id  (admin-only)
+exports.deleteInvoice = async (req, res) => {
+    try {
+        const invoice = await Invoice.findOne({ displayId: req.params.id });
+        if (!invoice) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+
+        // If the invoice was active (pending/overdue), restore the outfit to available
+        if (invoice.status !== 'paid') {
+            const outfit = await Outfit.findById(invoice.outfitId);
+            if (outfit && outfit.status === 'rented') {
+                outfit.status = 'available';
+                await outfit.save();
+            }
+        }
+
+        await Invoice.findByIdAndDelete(invoice._id);
+        res.json({ message: 'Invoice deleted successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+

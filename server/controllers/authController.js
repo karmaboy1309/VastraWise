@@ -124,4 +124,38 @@ const me = (req, res) => {
     });
 };
 
-module.exports = { login, refresh, logout, me };
+// ── PUT /api/auth/change-password ─────────────────────────────────────────────
+// Allows the logged-in user to change their own password.
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Both current and new password are required.' });
+        }
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+        }
+
+        // Fetch user with password field
+        const user = await require('../models/User').findById(req.user._id).select('+password');
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        // Verify current password
+        const bcrypt = require('bcryptjs');
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Current password is incorrect.' });
+        }
+
+        // Update password (pre-save hook will hash it)
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ message: 'Password updated successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+module.exports = { login, refresh, logout, me, changePassword };
