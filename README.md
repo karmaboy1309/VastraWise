@@ -1,7 +1,14 @@
 <div align="center">
 
-  <h1>👗 VASTRA WISE</h1>
-  <p><strong>Smart Rental Manager — Modern Clothing & Luxury Wardrobe Management Platform</strong></p>
+```text
+ __   __ _   ___ _____ ___    _   __      ____ ___  ___ 
+ \ \ / //_\ / __|_   _| _ \  / \  \ \    / /|_ _/ __|| __|
+  \ V // _ \\__ \ | | |   / / _ \  \ \/\/ /  | |\__ \| _| 
+   \_//_/ \_\___/ |_| |_|_\/_/ \_\  \_/\_/  |___|___/|___|
+```
+
+# ✨ VastraWise — Smart Rental Manager
+### *Next-Generation Clothing & Luxury Wardrobe Rental Management Platform*
 
   <p align="center">
     <a href="#-overview">Overview</a> •
