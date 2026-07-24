@@ -1,11 +1,15 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../lib/auth'
+import { setApiToken, setApiRefreshFn } from '../lib/api'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
 import InventoryPage from './components/InventoryPage'
 import BillingPage from './components/BillingPage'
 import CustomersPage from './components/CustomersPage'
 import ReportsPage from './components/ReportsPage'
+import WorkersPage from './components/WorkersPage'
 import {
   INITIAL_OUTFITS,
   INITIAL_CUSTOMERS,
@@ -28,20 +32,36 @@ import {
   updateInvoiceDB,
 } from '../lib/api'
 
-type Page = 'inventory' | 'billing' | 'customers' | 'reports'
+type Page = 'inventory' | 'billing' | 'customers' | 'reports' | 'workers'
 
 export default function App() {
+  const { user, token, isLoading, refreshAccessToken } = useAuth()
+  const router = useRouter()
   const [activePage, setActivePage] = useState<Page>('inventory')
   const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [dataLoading, setDataLoading] = useState(true)
 
   // Shared state – starts empty, filled from Express API
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
 
-  // ── Load data from Express API on mount ──────────────────────────
+  // ── Sync token into API layer whenever it changes ──────────────────────────
+  useEffect(() => {
+    setApiToken(token)
+    setApiRefreshFn(refreshAccessToken)
+  }, [token, refreshAccessToken])
+
+  // ── Redirect to login if not authenticated ─────────────────────────────────
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/login')
+    }
+  }, [isLoading, user, router])
+
+  // ── Load data from Express API on mount ───────────────────────────────────
   const loadData = useCallback(async () => {
+    if (!user) return
     try {
       const [o, c, i] = await Promise.all([
         fetchOutfits(),
@@ -52,26 +72,25 @@ export default function App() {
       setCustomers(c)
       setInvoices(i)
     } catch (err) {
-      // API may not be running – fall back to local seed data silently
       console.warn('API fetch failed, using local seed data:', err)
       setOutfits(INITIAL_OUTFITS)
       setCustomers(INITIAL_CUSTOMERS)
       setInvoices(INITIAL_INVOICES)
     } finally {
-      setLoading(false)
+      setDataLoading(false)
     }
-  }, [])
+  }, [user])
 
   useEffect(() => { loadData() }, [loadData])
 
-  // ── Outfit handlers ──────────────────────────────────────────────
+  // ── Outfit handlers ──────────────────────────────────────────────────────
   async function addOutfit(o: Outfit) {
     try {
       const saved = await insertOutfit(o)
       setOutfits(prev => [saved, ...prev])
     } catch (err) {
       console.error('Failed to add outfit:', err)
-      setOutfits(prev => [o, ...prev]) // optimistic fallback
+      setOutfits(prev => [o, ...prev])
     }
   }
 
@@ -95,7 +114,7 @@ export default function App() {
     }
   }
 
-  // ── Customer handlers ────────────────────────────────────────────
+  // ── Customer handlers ────────────────────────────────────────────────────
   async function addCustomer(c: Customer) {
     try {
       const saved = await insertCustomer(c)
@@ -126,17 +145,11 @@ export default function App() {
     }
   }
 
-  // ── Invoice handlers ─────────────────────────────────────────────
-  // The Express backend now handles ALL business logic atomically:
-  //   - POST /invoices: saves invoice + sets outfit to 'rented' + updates customer stats
-  //   - PUT /invoices/:id: updates invoice + syncs outfit status on payment transitions
-  // The frontend simply calls the API and reloads affected state.
-
+  // ── Invoice handlers ─────────────────────────────────────────────────────
   async function addInvoice(inv: Invoice) {
     try {
       const saved = await insertInvoice(inv)
       setInvoices(prev => [saved, ...prev])
-      // Reload outfits & customers to reflect backend-side changes
       const [updatedOutfits, updatedCustomers] = await Promise.all([
         fetchOutfits(),
         fetchCustomers(),
@@ -145,7 +158,6 @@ export default function App() {
       setCustomers(updatedCustomers)
     } catch (err) {
       console.error('Failed to add invoice:', err)
-      // Optimistic fallback for offline resilience
       setInvoices(prev => [inv, ...prev])
       setCustomers(prev => prev.map(c => {
         if (c.id === inv.customerId) {
@@ -161,7 +173,6 @@ export default function App() {
     try {
       const saved = await updateInvoiceDB(inv)
       setInvoices(prev => prev.map(x => x.id === saved.id ? saved : x))
-      // Reload outfits to reflect backend-side status changes
       const updatedOutfits = await fetchOutfits()
       setOutfits(updatedOutfits)
     } catch (err) {
@@ -170,19 +181,21 @@ export default function App() {
     }
   }
 
-  // Clear search on page change
   function handleNavigate(page: string) {
     setActivePage(page as Page)
     setSearchQuery('')
   }
 
+  // Show nothing while auth is resolving (layout handles initial spinner)
+  if (isLoading || !user) return null
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex' }}>
-      <Sidebar activePage={activePage} onNavigate={handleNavigate} />
+      <Sidebar activePage={activePage} onNavigate={handleNavigate} userRole={user.role} />
       <div className="main-layout" style={{ flex: 1 }}>
-        <Topbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+        <Topbar searchQuery={searchQuery} onSearchChange={setSearchQuery} user={user} />
         <main className="page-content">
-          {loading ? (
+          {dataLoading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: 16 }}>
               <div style={{ width: 40, height: 40, border: '3px solid rgba(99,102,241,0.2)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
               <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading from database…</p>
@@ -191,41 +204,46 @@ export default function App() {
           ) : (
             <>
               {activePage === 'inventory' && (
-            <InventoryPage
-              outfits={outfits}
-              onAddOutfit={addOutfit}
-              onUpdateOutfit={updateOutfit}
-              onDeleteOutfit={deleteOutfit}
-              searchQuery={searchQuery}
-            />
-          )}
-          {activePage === 'billing' && (
-            <BillingPage
-              invoices={invoices}
-              customers={customers}
-              outfits={outfits}
-              onAddInvoice={addInvoice}
-              onUpdateInvoice={updateInvoice}
-              searchQuery={searchQuery}
-            />
-          )}
-          {activePage === 'customers' && (
-            <CustomersPage
-              customers={customers}
-              invoices={invoices}
-              onAddCustomer={addCustomer}
-              onUpdateCustomer={updateCustomer}
-              onDeleteCustomer={deleteCustomer}
-              searchQuery={searchQuery}
-            />
-          )}
-          {activePage === 'reports' && (
-            <ReportsPage
-              outfits={outfits}
-              customers={customers}
-              invoices={invoices}
-            />
-          )}
+                <InventoryPage
+                  outfits={outfits}
+                  onAddOutfit={addOutfit}
+                  onUpdateOutfit={updateOutfit}
+                  onDeleteOutfit={deleteOutfit}
+                  searchQuery={searchQuery}
+                  userRole={user.role}
+                />
+              )}
+              {activePage === 'billing' && (
+                <BillingPage
+                  invoices={invoices}
+                  customers={customers}
+                  outfits={outfits}
+                  onAddInvoice={addInvoice}
+                  onUpdateInvoice={updateInvoice}
+                  searchQuery={searchQuery}
+                />
+              )}
+              {activePage === 'customers' && (
+                <CustomersPage
+                  customers={customers}
+                  invoices={invoices}
+                  onAddCustomer={addCustomer}
+                  onUpdateCustomer={updateCustomer}
+                  onDeleteCustomer={deleteCustomer}
+                  searchQuery={searchQuery}
+                  userRole={user.role}
+                />
+              )}
+              {activePage === 'reports' && user.role === 'admin' && (
+                <ReportsPage
+                  outfits={outfits}
+                  customers={customers}
+                  invoices={invoices}
+                />
+              )}
+              {activePage === 'workers' && user.role === 'admin' && (
+                <WorkersPage />
+              )}
             </>
           )}
         </main>
