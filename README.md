@@ -1,27 +1,27 @@
 <div align="center">
 
-```
-  _    _           _            _        _          
- | |  | |         | |          | |      (_)         
- | |  | | __ _ ___| |_ _ __ a _| |  _ _  _ ___  ___ 
- | |  | |/ _` / __| __| '__/ _` | | | | | / __|/ _ \
- \ \_/ / (_| \__ \ |_| | | (_| | |_| | | \__ \  __/
-  \___/ \__,_|___/\__|_|  \__,_|\__,_|_|_|___/\___|
-```
+  <h1>👗 VASTRA WISE</h1>
+  <p><strong>Smart Rental Manager — Modern Clothing & Luxury Wardrobe Management Platform</strong></p>
 
-# ✨ VastraWise — Smart Rental Manager
-### *Next-Generation Clothing & Luxury Wardrobe Rental Management Platform*
+  <p align="center">
+    <a href="#-overview">Overview</a> •
+    <a href="#-key-highlights--core-capabilities">Key Features</a> •
+    <a href="#-system-architecture">Architecture</a> •
+    <a href="#-api-endpoint-reference">API Reference</a> •
+    <a href="#-quick-start-guide">Quick Start</a>
+  </p>
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Express.js](https://img.shields.io/badge/Express.js-4.21-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_Cloud-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![JWT Security](https://img.shields.io/badge/Security-JWT%20%2B%20HTTP--Only%20Cookies-FF4B4B?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+  <br />
 
-<br />
+  [![Next.js](https://img.shields.io/badge/Next.js-16.1.6-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+  [![Express.js](https://img.shields.io/badge/Express.js-4.21-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_Cloud-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+  [![JWT Security](https://img.shields.io/badge/Security-JWT%20%2B%20HTTP--Only%20Cookies-FF4B4B?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
----
+  <br />
+  <hr />
 
 </div>
 
