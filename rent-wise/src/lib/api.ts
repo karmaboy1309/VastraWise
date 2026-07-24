@@ -1,19 +1,53 @@
 // ── VastraWise API Service Layer ─────────────────────────────────────────────
-// Replaces Supabase helpers. All calls go to the Express backend.
-// Each function returns data in the same shape as the old Supabase helpers
-// so that zero UI component changes are needed.
+// All calls go to the Express backend.
+// Access token is passed via Authorization header.
+// On 401, the caller should trigger a token refresh.
 
 import type { Outfit, Customer, Invoice } from './data'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
-// ── Generic fetch wrapper ────────────────────────────────────────────────────
+// ── Token accessor ────────────────────────────────────────────────────────────
+// The auth context keeps the token in memory. We expose a setter here so
+// the context can inject the token without creating a circular import.
+let _accessToken: string | null = null
+let _refreshFn: (() => Promise<string | null>) | null = null
 
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+export function setApiToken(token: string | null) {
+    _accessToken = token
+}
+
+export function setApiRefreshFn(fn: (() => Promise<string | null>) | null) {
+    _refreshFn = fn
+}
+
+// ── Generic fetch wrapper ────────────────────────────────────────────────────
+async function apiFetch<T>(path: string, options?: RequestInit, retry = true): Promise<T> {
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options?.headers as Record<string, string>),
+    }
+    if (_accessToken) {
+        headers['Authorization'] = `Bearer ${_accessToken}`
+    }
+
     const res = await fetch(`${API_URL}${path}`, {
-        headers: { 'Content-Type': 'application/json' },
         ...options,
+        headers,
+        credentials: 'include', // needed for refresh cookie
     })
+
+    // If 401 and we have a refresh function → try once to renew the token
+    if (res.status === 401 && retry && _refreshFn) {
+        const newToken = await _refreshFn()
+        if (newToken) {
+            return apiFetch<T>(path, options, false) // retry once with new token
+        }
+        // Refresh failed — redirect to login
+        if (typeof window !== 'undefined') window.location.href = '/login'
+        throw new Error('Session expired. Please log in again.')
+    }
+
     if (!res.ok) {
         const err = await res.json().catch(() => ({ error: res.statusText }))
         throw new Error(err.error || `API error: ${res.status}`)
@@ -70,10 +104,6 @@ export async function deleteCustomerDB(id: string): Promise<void> {
 }
 
 // ── INVOICES ─────────────────────────────────────────────────────────────────
-// NOTE: The Express backend now handles ALL business logic:
-//   - POST /invoices automatically sets outfit to 'rented' + updates customer stats
-//   - PUT  /invoices/:id automatically syncs outfit status on payment transitions
-// The frontend simply calls the API and refreshes its local state.
 
 export async function fetchInvoices(): Promise<Invoice[]> {
     return apiFetch<Invoice[]>('/invoices')
@@ -91,4 +121,39 @@ export async function updateInvoiceDB(inv: Invoice): Promise<Invoice> {
         method: 'PUT',
         body: JSON.stringify(inv),
     })
+}
+
+// ── USERS (admin only) ────────────────────────────────────────────────────────
+
+export interface WorkerUser {
+    _id: string
+    id?: string
+    name: string
+    email: string
+    role: 'admin' | 'worker'
+    isActive: boolean
+    createdAt: string
+    createdBy?: { name: string; email: string }
+}
+
+export async function fetchUsers(): Promise<WorkerUser[]> {
+    return apiFetch<WorkerUser[]>('/users')
+}
+
+export async function createUser(data: { name: string; email: string; password: string; role: string }): Promise<WorkerUser> {
+    return apiFetch<WorkerUser>('/users', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    })
+}
+
+export async function updateUser(id: string, data: Partial<{ name: string; role: string; isActive: boolean; password: string }>): Promise<WorkerUser> {
+    return apiFetch<WorkerUser>(`/users/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    })
+}
+
+export async function deleteUser(id: string): Promise<void> {
+    await apiFetch(`/users/${id}`, { method: 'DELETE' })
 }
