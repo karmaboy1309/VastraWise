@@ -1,13 +1,19 @@
 "use client"
 import React from 'react'
 import { Search, Bell } from 'lucide-react'
+import type { AuthUser } from '../../lib/auth'
 
 interface TopbarProps {
   searchQuery: string
   onSearchChange: (v: string) => void
+  user: AuthUser
 }
 
-export default function Topbar({ searchQuery, onSearchChange }: TopbarProps) {
+export default function Topbar({ searchQuery, onSearchChange, user }: TopbarProps) {
+  const initials = user.name
+    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'AU'
+
   return (
     <header className="topbar">
       <div className="search-wrapper">
@@ -27,10 +33,10 @@ export default function Topbar({ searchQuery, onSearchChange }: TopbarProps) {
         </button>
 
         <div className="user-chip">
-          <div className="user-avatar">AU</div>
+          <div className="user-avatar">{initials}</div>
           <div>
-            <div className="user-name">Admin User</div>
-            <div className="user-email">admin@vastrawise.com</div>
+            <div className="user-name">{user.name}</div>
+            <div className="user-email" style={{ textTransform: 'capitalize' }}>{user.role}</div>
           </div>
         </div>
       </div>
