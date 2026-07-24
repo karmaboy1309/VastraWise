@@ -30,6 +30,7 @@ import {
   deleteCustomerDB,
   insertInvoice,
   updateInvoiceDB,
+  deleteInvoiceDB,
 } from '../lib/api'
 
 type Page = 'inventory' | 'billing' | 'customers' | 'reports' | 'workers'
@@ -181,6 +182,19 @@ export default function App() {
     }
   }
 
+  async function deleteInvoice(id: string) {
+    try {
+      await deleteInvoiceDB(id)
+      setInvoices(prev => prev.filter(x => x.id !== id))
+      // Refresh outfits in case one was freed back to 'available'
+      const updatedOutfits = await fetchOutfits()
+      setOutfits(updatedOutfits)
+    } catch (err) {
+      console.error('Failed to delete invoice:', err)
+      alert(err instanceof Error ? err.message : 'Failed to delete invoice')
+    }
+  }
+
   function handleNavigate(page: string) {
     setActivePage(page as Page)
     setSearchQuery('')
@@ -220,7 +234,9 @@ export default function App() {
                   outfits={outfits}
                   onAddInvoice={addInvoice}
                   onUpdateInvoice={updateInvoice}
+                  onDeleteInvoice={deleteInvoice}
                   searchQuery={searchQuery}
+                  userRole={user.role}
                 />
               )}
               {activePage === 'customers' && (

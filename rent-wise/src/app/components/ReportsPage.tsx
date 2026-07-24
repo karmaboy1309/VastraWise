@@ -4,7 +4,7 @@ import {
     BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts'
-import { TrendingUp, IndianRupee, XCircle, Clock } from 'lucide-react'
+import { TrendingUp, IndianRupee, XCircle, Clock, FileDown } from 'lucide-react'
 import { Outfit, Customer, Invoice } from '../../lib/data'
 
 interface ReportsPageProps {
@@ -92,9 +92,24 @@ export default function ReportsPage({ outfits, customers, invoices }: ReportsPag
 
     return (
         <div>
-            <div className="page-header">
-                <h1>Reports & Analytics</h1>
-                <p>Track performance and gain insights</p>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <h1>Reports &amp; Analytics</h1>
+                    <p>Track performance and gain insights</p>
+                </div>
+                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                    <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => {
+                            const rows = invoices.map(i => `"${i.id}","${i.customerName}","${i.outfitName}","${i.amount}","${i.date}","${i.returnDate}","${i.status}"`)
+                            const csv = ['"Invoice ID","Customer","Outfit","Amount","Date","Return Date","Status"', ...rows].join('\n')
+                            const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'VastraWise-Report.csv' })
+                            a.click()
+                        }}
+                    >
+                        <FileDown size={14} /> Export CSV
+                    </button>
+                </div>
             </div>
 
             {/* KPI Stats */}

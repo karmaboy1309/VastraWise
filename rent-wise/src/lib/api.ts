@@ -123,6 +123,10 @@ export async function updateInvoiceDB(inv: Invoice): Promise<Invoice> {
     })
 }
 
+export async function deleteInvoiceDB(id: string): Promise<void> {
+    await apiFetch(`/invoices/${id}`, { method: 'DELETE' })
+}
+
 // ── USERS (admin only) ────────────────────────────────────────────────────────
 
 export interface WorkerUser {
@@ -156,4 +160,13 @@ export async function updateUser(id: string, data: Partial<{ name: string; role:
 
 export async function deleteUser(id: string): Promise<void> {
     await apiFetch(`/users/${id}`, { method: 'DELETE' })
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+
+export async function changePasswordAPI(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    return apiFetch<{ message: string }>('/auth/change-password', {
+        method: 'PUT',
+        body: JSON.stringify({ currentPassword, newPassword }),
+    })
 }

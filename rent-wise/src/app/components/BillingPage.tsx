@@ -1,7 +1,8 @@
 "use client"
 import React, { useState } from 'react'
-import { CreditCard, Clock, CheckCircle, FileText, Download, X, Plus, Search } from 'lucide-react'
+import { CreditCard, Clock, CheckCircle, FileText, Download, X, Plus, Trash2, FileDown } from 'lucide-react'
 import { Invoice, Customer, Outfit } from '../../lib/data'
+import type { UserRole } from '../../lib/auth'
 
 interface BillingPageProps {
     invoices: Invoice[]
@@ -9,7 +10,9 @@ interface BillingPageProps {
     outfits: Outfit[]
     onAddInvoice: (inv: Invoice) => void
     onUpdateInvoice: (inv: Invoice) => void
+    onDeleteInvoice: (id: string) => void
     searchQuery: string
+    userRole?: UserRole
 }
 
 function fmtPrice(n: number) {
@@ -350,8 +353,31 @@ async function downloadInvoicePDF(inv: Invoice) {
 }
 
 
-export default function BillingPage({ invoices, customers, outfits, onAddInvoice, onUpdateInvoice, searchQuery }: BillingPageProps) {
+// ── CSV Export ───────────────────────────────────────────────────────────────
+function exportToCSV(invoices: Invoice[]) {
+    const headers = ['Invoice ID', 'Customer', 'Outfit', 'Amount (₹)', 'Date', 'Return Date', 'Status']
+    const rows = invoices.map(inv => [
+        inv.id,
+        inv.customerName,
+        inv.outfitName,
+        inv.amount.toString(),
+        inv.date,
+        inv.returnDate,
+        inv.status,
+    ])
+    const csv = [headers, ...rows].map(r => r.map(cell => `"${cell}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `VastraWise-Invoices-${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+}
+
+export default function BillingPage({ invoices, customers, outfits, onAddInvoice, onUpdateInvoice, onDeleteInvoice, searchQuery, userRole }: BillingPageProps) {
     const [showCreate, setShowCreate] = useState(false)
+    const isAdmin = userRole === 'admin' || !userRole
 
     const totalRevenue = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0)
     const pendingAmount = invoices.filter(i => i.status === 'pending').reduce((s, i) => s + i.amount, 0)
@@ -421,9 +447,14 @@ export default function BillingPage({ invoices, customers, outfits, onAddInvoice
                         <div className="section-title">Recent Invoices</div>
                         <div className="section-sub">{filtered.length} records found</div>
                     </div>
-                    <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-                        <Plus style={{ width: 16, height: 16 }} /> Create Invoice
-                    </button>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => exportToCSV(filtered)} title="Export to CSV">
+                            <FileDown size={14} /> Export CSV
+                        </button>
+                        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+                            <Plus style={{ width: 16, height: 16 }} /> Create Invoice
+                        </button>
+                    </div>
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>
@@ -437,7 +468,7 @@ export default function BillingPage({ invoices, customers, outfits, onAddInvoice
                                 <th>Date</th>
                                 <th>Return Date</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -479,13 +510,29 @@ export default function BillingPage({ invoices, customers, outfits, onAddInvoice
                                         </select>
                                     </td>
                                     <td>
-                                        <button
-                                            className="btn btn-outline btn-sm"
-                                            onClick={() => downloadInvoicePDF(inv)}
-                                            style={{ gap: 6 }}
-                                        >
-                                            <Download style={{ width: 13, height: 13 }} /> PDF Invoice
-                                        </button>
+                                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                            <button
+                                                className="btn btn-outline btn-sm"
+                                                onClick={() => downloadInvoicePDF(inv)}
+                                                style={{ gap: 6 }}
+                                            >
+                                                <Download style={{ width: 13, height: 13 }} /> PDF
+                                            </button>
+                                            {isAdmin && (
+                                                <button
+                                                    className="btn-icon"
+                                                    title="Delete Invoice"
+                                                    onClick={() => {
+                                                        if (confirm(`Delete invoice ${inv.id}? This cannot be undone.`)) {
+                                                            onDeleteInvoice(inv.id)
+                                                        }
+                                                    }}
+                                                    style={{ color: '#ef4444' }}
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
