@@ -1,23 +1,29 @@
 const Outfit = require('../models/Outfit');
 
+const mapOutfit = o => ({
+    id: o.displayId,
+    _id: o._id,
+    name: o.name,
+    category: o.category,
+    rentPrice: o.rentPrice,
+    securityDeposit: o.securityDeposit || 2000,
+    status: o.status,
+    imageUrl: o.imageUrl,
+    description: o.description || '',
+    size: o.size || '',
+    chestSize: o.chestSize || '40"',
+    waistSize: o.waistSize || '34"',
+    fitType: o.fitType || 'Regular Fit',
+    color: o.color || '',
+    includedAccessories: o.includedAccessories || [],
+});
+
 // @desc    Get all outfits
 // @route   GET /api/outfits
 exports.getAll = async (req, res) => {
     try {
         const outfits = await Outfit.find().sort({ createdAt: -1 });
-        const mapped = outfits.map(o => ({
-            id: o.displayId,
-            _id: o._id,
-            name: o.name,
-            category: o.category,
-            rentPrice: o.rentPrice,
-            status: o.status,
-            imageUrl: o.imageUrl,
-            description: o.description,
-            size: o.size,
-            color: o.color,
-        }));
-        res.json(mapped);
+        res.json(outfits.map(mapOutfit));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -27,30 +33,30 @@ exports.getAll = async (req, res) => {
 // @route   POST /api/outfits
 exports.create = async (req, res) => {
     try {
-        const { name, category, rentPrice, status, imageUrl, description, size, color, id } = req.body;
+        const {
+            name, category, rentPrice, securityDeposit, status,
+            imageUrl, description, size, chestSize, waistSize,
+            fitType, color, includedAccessories, id
+        } = req.body;
+
         const outfit = await Outfit.create({
-            displayId: id || undefined, // use client-provided ID or auto-generate
+            displayId: id && !id.startsWith('OUT-1') ? id : undefined, // auto-generate clean OUT-XXX displayId if temporary client timestamp ID passed
             name,
-            category,
-            rentPrice,
-            status,
+            category: category || 'Sherwani',
+            rentPrice: Number(rentPrice) || 0,
+            securityDeposit: Number(securityDeposit) || 2000,
+            status: status || 'available',
             imageUrl,
-            description,
-            size,
-            color,
+            description: description || '',
+            size: size || '40 (M)',
+            chestSize: chestSize || '40"',
+            waistSize: waistSize || '34"',
+            fitType: fitType || 'Regular Fit',
+            color: color || '',
+            includedAccessories: Array.isArray(includedAccessories) ? includedAccessories : [],
         });
-        res.status(201).json({
-            id: outfit.displayId,
-            _id: outfit._id,
-            name: outfit.name,
-            category: outfit.category,
-            rentPrice: outfit.rentPrice,
-            status: outfit.status,
-            imageUrl: outfit.imageUrl,
-            description: outfit.description,
-            size: outfit.size,
-            color: outfit.color,
-        });
+
+        res.status(201).json(mapOutfit(outfit));
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -66,18 +72,7 @@ exports.update = async (req, res) => {
             { new: true, runValidators: true }
         );
         if (!outfit) return res.status(404).json({ error: 'Outfit not found' });
-        res.json({
-            id: outfit.displayId,
-            _id: outfit._id,
-            name: outfit.name,
-            category: outfit.category,
-            rentPrice: outfit.rentPrice,
-            status: outfit.status,
-            imageUrl: outfit.imageUrl,
-            description: outfit.description,
-            size: outfit.size,
-            color: outfit.color,
-        });
+        res.json(mapOutfit(outfit));
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
