@@ -16,6 +16,9 @@ const mapOutfit = o => ({
     fitType: o.fitType || 'Regular Fit',
     color: o.color || '',
     includedAccessories: o.includedAccessories || [],
+    marketRetailPrice: o.marketRetailPrice || 0,
+    marketDemand: o.marketDemand || 'High',
+    marketTrendNote: o.marketTrendNote || '',
 });
 
 // @desc    Get all outfits
@@ -36,13 +39,14 @@ exports.create = async (req, res) => {
         const {
             name, category, rentPrice, securityDeposit, status,
             imageUrl, description, size, chestSize, waistSize,
-            fitType, color, includedAccessories, id
+            fitType, color, includedAccessories, id,
+            marketRetailPrice, marketDemand, marketTrendNote
         } = req.body;
 
         const outfit = await Outfit.create({
             displayId: id && !id.startsWith('OUT-1') ? id : undefined, // auto-generate clean OUT-XXX displayId if temporary client timestamp ID passed
             name,
-            category: category || 'Sherwani',
+            category: category || 'Sherwanis',
             rentPrice: Number(rentPrice) || 0,
             securityDeposit: Number(securityDeposit) || 2000,
             status: status || 'available',
@@ -54,6 +58,9 @@ exports.create = async (req, res) => {
             fitType: fitType || 'Regular Fit',
             color: color || '',
             includedAccessories: Array.isArray(includedAccessories) ? includedAccessories : [],
+            marketRetailPrice: Number(marketRetailPrice) || 0,
+            marketDemand: marketDemand || 'High',
+            marketTrendNote: marketTrendNote || '',
         });
 
         res.status(201).json(mapOutfit(outfit));

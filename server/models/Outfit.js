@@ -15,8 +15,7 @@ const outfitSchema = new mongoose.Schema(
         category: {
             type: String,
             required: true,
-            default: 'Sherwani',
-            enum: ['Sherwani', 'Indo-Western', 'Jodhpuri', 'Tuxedo & Suit', 'Kurta Set', 'Accessories', 'Other'],
+            default: 'Sherwanis',
         },
         rentPrice: {
             type: Number,
@@ -66,6 +65,18 @@ const outfitSchema = new mongoose.Schema(
         includedAccessories: {
             type: [String],
             default: [],
+        },
+        marketRetailPrice: {
+            type: Number,
+            default: 0,
+        },
+        marketDemand: {
+            type: String,
+            default: 'High',
+        },
+        marketTrendNote: {
+            type: String,
+            default: '',
         },
     },
     {
