@@ -36,15 +36,45 @@ function fmtPrice(n: number) {
 function getDemandBadge(demand?: string) {
     switch (demand) {
         case 'Very High':
-            return { label: '🔥 Very High Demand', bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: 'rgba(239, 68, 68, 0.3)' }
+            return {
+                label: '🔥 Very High Demand',
+                bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                color: '#ffffff',
+                border: 'rgba(255, 255, 255, 0.4)',
+                shadow: '0 2px 8px rgba(220, 38, 38, 0.5)'
+            }
         case 'Trending':
-            return { label: '📈 Trending 2026', bg: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', border: 'rgba(168, 85, 247, 0.3)' }
+            return {
+                label: '📈 Trending 2026',
+                bg: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)',
+                color: '#ffffff',
+                border: 'rgba(255, 255, 255, 0.4)',
+                shadow: '0 2px 8px rgba(147, 51, 234, 0.5)'
+            }
         case 'Classic Peak':
-            return { label: '👑 Royal Peak', bg: 'rgba(234, 179, 8, 0.15)', color: '#eab308', border: 'rgba(234, 179, 8, 0.3)' }
+            return {
+                label: '👑 Royal Peak',
+                bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                color: '#ffffff',
+                border: 'rgba(255, 255, 255, 0.4)',
+                shadow: '0 2px 8px rgba(217, 119, 6, 0.5)'
+            }
         case 'Moderate':
-            return { label: '⚖️ Moderate Demand', bg: 'rgba(107, 114, 128, 0.15)', color: '#9ca3af', border: 'rgba(107, 114, 128, 0.3)' }
+            return {
+                label: '⚖️ Moderate Demand',
+                bg: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+                color: '#ffffff',
+                border: 'rgba(255, 255, 255, 0.4)',
+                shadow: '0 2px 8px rgba(75, 85, 99, 0.5)'
+            }
         default:
-            return { label: '⭐ High ROI', bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', border: 'rgba(59, 130, 246, 0.3)' }
+            return {
+                label: '⭐ High ROI',
+                bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                color: '#ffffff',
+                border: 'rgba(255, 255, 255, 0.4)',
+                shadow: '0 2px 8px rgba(37, 99, 235, 0.5)'
+            }
     }
 }
 
@@ -421,7 +451,16 @@ function DetailModal({ outfit, onClose, onEdit, onDelete }: DetailModalProps) {
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&q=80' }}
                     />
-                    <div style={{ position: 'absolute', top: 12, right: 12, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, backdropFilter: 'blur(4px)' }}>
+                    <div style={{
+                        position: 'absolute', top: 12, right: 12,
+                        background: badge.bg, color: '#ffffff',
+                        border: `1px solid ${badge.border}`,
+                        boxShadow: badge.shadow,
+                        padding: '5px 12px', borderRadius: 20,
+                        fontSize: 12, fontWeight: 700,
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                        letterSpacing: '0.02em', zIndex: 2
+                    }}>
                         {badge.label}
                     </div>
                 </div>
@@ -687,10 +726,13 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
                                     </span>
                                     <span style={{
                                         position: 'absolute', bottom: 10, left: 10,
-                                        background: badge.bg, color: badge.color,
+                                        background: badge.bg, color: '#ffffff',
                                         border: `1px solid ${badge.border}`,
-                                        padding: '3px 8px', borderRadius: 12,
-                                        fontSize: 10, fontWeight: 700, backdropFilter: 'blur(4px)'
+                                        boxShadow: badge.shadow,
+                                        padding: '4px 10px', borderRadius: 14,
+                                        fontSize: 11, fontWeight: 700,
+                                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                                        letterSpacing: '0.02em', zIndex: 2
                                     }}>
                                         {badge.label}
                                     </span>
