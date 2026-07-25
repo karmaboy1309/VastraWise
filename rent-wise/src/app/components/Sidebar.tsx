@@ -39,24 +39,24 @@ export default function Sidebar({ activePage, onNavigate, userRole }: SidebarPro
           display: inline-flex;
           align-items: center;
           gap: 5px;
-          background: rgba(99,102,241,0.15);
-          border: 1px solid rgba(99,102,241,0.3);
+          background: var(--accent-soft);
+          border: 1px solid rgba(99,102,241,0.2);
           border-radius: 20px;
           padding: 3px 10px;
           font-size: 11px;
           font-weight: 600;
-          color: #a5b4fc;
+          color: var(--accent-text);
           letter-spacing: 0.3px;
           text-transform: uppercase;
         }
         .role-chip.worker {
-          background: rgba(16,185,129,0.12);
-          border-color: rgba(16,185,129,0.3);
-          color: #6ee7b7;
+          background: var(--green-bg);
+          border-color: rgba(16,185,129,0.2);
+          color: var(--green);
         }
         .sidebar-user-section {
           padding: 14px 16px;
-          border-top: 1px solid rgba(255,255,255,0.06);
+          border-top: 1px solid var(--border);
           display: flex;
           align-items: center;
           gap: 10px;
@@ -65,7 +65,7 @@ export default function Sidebar({ activePage, onNavigate, userRole }: SidebarPro
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
           display: flex;
           align-items: center;
           justify-content: center;
@@ -78,7 +78,7 @@ export default function Sidebar({ activePage, onNavigate, userRole }: SidebarPro
         .sidebar-user-name {
           font-size: 13px;
           font-weight: 600;
-          color: var(--text-primary, #f8fafc);
+          color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -87,17 +87,17 @@ export default function Sidebar({ activePage, onNavigate, userRole }: SidebarPro
           background: none;
           border: none;
           cursor: pointer;
-          color: rgba(255,255,255,0.35);
+          color: var(--text-muted);
           padding: 6px;
           border-radius: 8px;
           display: flex;
           align-items: center;
-          transition: color 0.2s, background 0.2s;
+          transition: color 0.15s, background 0.15s;
           flex-shrink: 0;
         }
         .logout-btn:hover {
-          color: #f87171;
-          background: rgba(239,68,68,0.1);
+          color: var(--red);
+          background: var(--red-bg);
         }
       `}</style>
       <aside className="sidebar">
