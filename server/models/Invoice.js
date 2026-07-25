@@ -30,13 +30,39 @@ const invoiceSchema = new mongoose.Schema(
             required: [true, 'Amount is required'],
             min: 0,
         },
+        securityDeposit: {
+            type: Number,
+            default: 2000,
+            min: 0,
+        },
+        depositStatus: {
+            type: String,
+            default: 'held',
+            enum: ['held', 'refunded', 'forfeited'],
+        },
         date: {
             type: String,
-            required: [true, 'Rental date is required'],
+            required: [true, 'Rental pickup date is required'],
         },
         returnDate: {
             type: String,
             required: [true, 'Return date is required'],
+        },
+        trialDate: {
+            type: String,
+            default: '',
+        },
+        eventDate: {
+            type: String,
+            default: '',
+        },
+        includedAccessories: {
+            type: [String],
+            default: [],
+        },
+        alterationNotes: {
+            type: String,
+            default: '',
         },
         status: {
             type: String,
