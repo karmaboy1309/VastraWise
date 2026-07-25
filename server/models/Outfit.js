@@ -15,12 +15,17 @@ const outfitSchema = new mongoose.Schema(
         category: {
             type: String,
             required: true,
-            default: 'Other',
-            enum: ['Sherwani', 'Saree', 'Lehenga', 'Kurta', 'Suit', 'Other'],
+            default: 'Sherwani',
+            enum: ['Sherwani', 'Indo-Western', 'Jodhpuri', 'Tuxedo & Suit', 'Kurta Set', 'Accessories', 'Other'],
         },
         rentPrice: {
             type: Number,
             required: [true, 'Rent price is required'],
+            min: 0,
+        },
+        securityDeposit: {
+            type: Number,
+            default: 2000,
             min: 0,
         },
         status: {
@@ -39,11 +44,28 @@ const outfitSchema = new mongoose.Schema(
         },
         size: {
             type: String,
-            default: '',
+            default: '40 (M)',
+        },
+        chestSize: {
+            type: String,
+            default: '40"',
+        },
+        waistSize: {
+            type: String,
+            default: '34"',
+        },
+        fitType: {
+            type: String,
+            default: 'Regular Fit',
+            enum: ['Slim Fit', 'Regular Fit', 'Royal Tailored'],
         },
         color: {
             type: String,
             default: '',
+        },
+        includedAccessories: {
+            type: [String],
+            default: [],
         },
     },
     {
