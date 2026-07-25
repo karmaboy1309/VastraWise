@@ -641,6 +641,18 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
         setEditingCardId(null)
     }
 
+    React.useEffect(() => {
+        if (!editingCardId) return
+        function handleGlobalClick(e: MouseEvent) {
+            const target = e.target as HTMLElement
+            if (!target.closest('.inline-popover-card') && !target.closest('.btn-icon')) {
+                setEditingCardId(null)
+            }
+        }
+        window.addEventListener('mousedown', handleGlobalClick)
+        return () => window.removeEventListener('mousedown', handleGlobalClick)
+    }, [editingCardId])
+
     const totalOutfits = outfits.length
     const currentlyRented = outfits.filter(o => o.status === 'rented').length
     const todayRevenue = outfits.filter(o => o.status === 'rented').reduce((s, o) => s + o.rentPrice, 0)
@@ -793,152 +805,156 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
                         const badge = getDemandBadge(outfit.marketDemand)
                         const isInlineEditing = editingCardId === outfit.id
 
-                        if (isInlineEditing) {
-                            return (
-                                <div key={outfit.id} className="outfit-card inline-edit-card" style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    border: '2px solid var(--accent)',
-                                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.25)',
-                                    background: 'var(--bg-card)',
-                                    borderRadius: 16,
-                                    padding: 16,
-                                    gridColumn: 'span 1'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <Edit2 size={14} /> Edit Outfit {outfit.id}
-                                        </div>
-                                        <button className="btn-icon" onClick={() => setEditingCardId(null)} title="Close Inline Edit">
-                                            <X size={16} />
-                                        </button>
-                                    </div>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                                        <div>
-                                            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Garment Name *</label>
-                                            <input
-                                                className="form-input"
-                                                style={{ padding: '6px 10px', fontSize: 13 }}
-                                                value={inlineForm.name || ''}
-                                                onChange={e => setInlineForm(f => ({ ...f, name: e.target.value }))}
-                                                placeholder="Garment Name"
-                                            />
-                                            {inlineErrors.name && <span style={{ color: '#ef4444', fontSize: 11 }}>{inlineErrors.name}</span>}
-                                        </div>
-
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                            <div>
-                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Category</label>
-                                                <select
-                                                    className="form-select"
-                                                    style={{ padding: '6px 8px', fontSize: 12 }}
-                                                    value={inlineForm.category || 'Sherwanis'}
-                                                    onChange={e => setInlineForm(f => ({ ...f, category: e.target.value }))}
-                                                >
-                                                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                                </select>
+                        return (
+                            <div key={outfit.id} className="outfit-card" style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                                {/* Floating non-blocking Edit Popover (positioned right at this card slot) */}
+                                {isInlineEditing && (
+                                    <div className="inline-popover-card" style={{
+                                        position: 'absolute',
+                                        top: -8,
+                                        left: -8,
+                                        width: 'calc(100% + 16px)',
+                                        background: 'var(--bg-card)',
+                                        border: '2px solid var(--accent)',
+                                        borderRadius: 18,
+                                        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.45)',
+                                        zIndex: 100,
+                                        padding: 16,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 10
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>
+                                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                <Edit2 size={14} /> Quick Edit #{outfit.id}
                                             </div>
-                                            <div>
-                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Status</label>
-                                                <select
-                                                    className="form-select"
-                                                    style={{ padding: '6px 8px', fontSize: 12 }}
-                                                    value={inlineForm.status || 'available'}
-                                                    onChange={e => setInlineForm(f => ({ ...f, status: e.target.value as any }))}
-                                                >
-                                                    <option value="available">Available</option>
-                                                    <option value="rented">Rented</option>
-                                                    <option value="maintenance">Maintenance</option>
-                                                </select>
-                                            </div>
+                                            <button className="btn-icon" onClick={() => setEditingCardId(null)} title="Close Popup">
+                                                <X size={16} />
+                                            </button>
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                             <div>
-                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Rent Price (₹) *</label>
+                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Garment Name *</label>
                                                 <input
-                                                    type="number"
                                                     className="form-input"
                                                     style={{ padding: '6px 10px', fontSize: 13 }}
-                                                    value={inlineForm.rentPrice || ''}
-                                                    onChange={e => setInlineForm(f => ({ ...f, rentPrice: Number(e.target.value) }))}
-                                                    placeholder="7500"
+                                                    value={inlineForm.name || ''}
+                                                    onChange={e => setInlineForm(f => ({ ...f, name: e.target.value }))}
+                                                    placeholder="Garment Name"
                                                 />
-                                                {inlineErrors.rentPrice && <span style={{ color: '#ef4444', fontSize: 11 }}>{inlineErrors.rentPrice}</span>}
+                                                {inlineErrors.name && <span style={{ color: '#ef4444', fontSize: 11 }}>{inlineErrors.name}</span>}
                                             </div>
-                                            <div>
-                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Deposit (₹)</label>
-                                                <input
-                                                    type="number"
-                                                    className="form-input"
-                                                    style={{ padding: '6px 10px', fontSize: 13 }}
-                                                    value={inlineForm.securityDeposit || ''}
-                                                    onChange={e => setInlineForm(f => ({ ...f, securityDeposit: Number(e.target.value) }))}
-                                                    placeholder="2500"
-                                                />
-                                            </div>
-                                        </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                                <div>
+                                                    <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Category</label>
+                                                    <select
+                                                        className="form-select"
+                                                        style={{ padding: '6px 8px', fontSize: 12 }}
+                                                        value={inlineForm.category || 'Sherwanis'}
+                                                        onChange={e => setInlineForm(f => ({ ...f, category: e.target.value }))}
+                                                    >
+                                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Status</label>
+                                                    <select
+                                                        className="form-select"
+                                                        style={{ padding: '6px 8px', fontSize: 12 }}
+                                                        value={inlineForm.status || 'available'}
+                                                        onChange={e => setInlineForm(f => ({ ...f, status: e.target.value as any }))}
+                                                    >
+                                                        <option value="available">Available</option>
+                                                        <option value="rented">Rented</option>
+                                                        <option value="maintenance">Maintenance</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                                <div>
+                                                    <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Rent Price (₹) *</label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-input"
+                                                        style={{ padding: '6px 10px', fontSize: 13 }}
+                                                        value={inlineForm.rentPrice || ''}
+                                                        onChange={e => setInlineForm(f => ({ ...f, rentPrice: Number(e.target.value) }))}
+                                                        placeholder="7500"
+                                                    />
+                                                    {inlineErrors.rentPrice && <span style={{ color: '#ef4444', fontSize: 11 }}>{inlineErrors.rentPrice}</span>}
+                                                </div>
+                                                <div>
+                                                    <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Deposit (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-input"
+                                                        style={{ padding: '6px 10px', fontSize: 13 }}
+                                                        value={inlineForm.securityDeposit || ''}
+                                                        onChange={e => setInlineForm(f => ({ ...f, securityDeposit: Number(e.target.value) }))}
+                                                        placeholder="2500"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                                <div>
+                                                    <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', display: 'block', marginBottom: 3 }}>Retail Market ₹</label>
+                                                    <input
+                                                        type="number"
+                                                        className="form-input"
+                                                        style={{ padding: '6px 10px', fontSize: 12 }}
+                                                        value={inlineForm.marketRetailPrice || ''}
+                                                        onChange={e => setInlineForm(f => ({ ...f, marketRetailPrice: Number(e.target.value) }))}
+                                                        placeholder="45000"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', display: 'block', marginBottom: 3 }}>Market Demand</label>
+                                                    <select
+                                                        className="form-select"
+                                                        style={{ padding: '6px 8px', fontSize: 12 }}
+                                                        value={inlineForm.marketDemand || 'High'}
+                                                        onChange={e => setInlineForm(f => ({ ...f, marketDemand: e.target.value as any }))}
+                                                    >
+                                                        {MARKET_DEMANDS.map(d => <option key={d} value={d}>{d}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+
                                             <div>
-                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', display: 'block', marginBottom: 3 }}>Retail Market ₹</label>
+                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Image URL</label>
                                                 <input
-                                                    type="number"
                                                     className="form-input"
                                                     style={{ padding: '6px 10px', fontSize: 12 }}
-                                                    value={inlineForm.marketRetailPrice || ''}
-                                                    onChange={e => setInlineForm(f => ({ ...f, marketRetailPrice: Number(e.target.value) }))}
-                                                    placeholder="45000"
+                                                    value={inlineForm.imageUrl || ''}
+                                                    onChange={e => setInlineForm(f => ({ ...f, imageUrl: e.target.value }))}
+                                                    placeholder="https://..."
                                                 />
                                             </div>
-                                            <div>
-                                                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)', display: 'block', marginBottom: 3 }}>Market Demand</label>
-                                                <select
-                                                    className="form-select"
-                                                    style={{ padding: '6px 8px', fontSize: 12 }}
-                                                    value={inlineForm.marketDemand || 'High'}
-                                                    onChange={e => setInlineForm(f => ({ ...f, marketDemand: e.target.value as any }))}
-                                                >
-                                                    {MARKET_DEMANDS.map(d => <option key={d} value={d}>{d}</option>)}
-                                                </select>
-                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Image URL</label>
-                                            <input
-                                                className="form-input"
-                                                style={{ padding: '6px 10px', fontSize: 12 }}
-                                                value={inlineForm.imageUrl || ''}
-                                                onChange={e => setInlineForm(f => ({ ...f, imageUrl: e.target.value }))}
-                                                placeholder="https://..."
-                                            />
+                                        <div style={{ display: 'flex', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                                            <button
+                                                className="btn btn-secondary btn-sm"
+                                                style={{ flex: 1, padding: '6px 10px', fontSize: 12 }}
+                                                onClick={() => setEditingCardId(null)}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                style={{ flex: 1, padding: '6px 10px', fontSize: 12 }}
+                                                onClick={() => handleInlineSave(outfit.id)}
+                                            >
+                                                Save Changes
+                                            </button>
                                         </div>
                                     </div>
+                                )}
 
-                                    <div style={{ display: 'flex', gap: 8, marginTop: 12, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                                        <button
-                                            className="btn btn-secondary btn-sm"
-                                            style={{ flex: 1, padding: '6px 10px', fontSize: 12 }}
-                                            onClick={() => setEditingCardId(null)}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            className="btn btn-primary btn-sm"
-                                            style={{ flex: 1, padding: '6px 10px', fontSize: 12 }}
-                                            onClick={() => handleInlineSave(outfit.id)}
-                                        >
-                                            Save Changes
-                                        </button>
-                                    </div>
-                                </div>
-                            )
-                        }
-
-                        return (
-                            <div key={outfit.id} className="outfit-card" style={{ display: 'flex', flexDirection: 'column' }}>
                                 <div className="outfit-image-wrapper" onClick={() => setViewOutfit(outfit)}>
                                     <img
                                         src={outfit.imageUrl}
