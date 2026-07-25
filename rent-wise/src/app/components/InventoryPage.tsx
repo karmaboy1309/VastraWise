@@ -1,7 +1,11 @@
 "use client"
 import React, { useState, useRef, useCallback } from 'react'
-import { Box, TrendingUp, IndianRupee, Plus, X, Eye, Edit2, Trash2, Package, Upload, ImageIcon, Link, ShieldCheck, CheckCircle2 } from 'lucide-react'
-import { Outfit } from '../../lib/data'
+import {
+    Box, TrendingUp, IndianRupee, Plus, X, Eye, Edit2, Trash2, Package,
+    Upload, ImageIcon, Link, ShieldCheck, CheckCircle2, Flame, Sparkles,
+    Tag, Info, ShoppingBag, Award
+} from 'lucide-react'
+import { Outfit, CATEGORIES } from '../../lib/data'
 import type { UserRole } from '../../lib/auth'
 import { uploadImageAPI } from '../../lib/api'
 
@@ -14,15 +18,34 @@ interface InventoryPageProps {
     userRole?: UserRole
 }
 
-const CATEGORIES = ['Sherwani', 'Indo-Western', 'Jodhpuri', 'Tuxedo & Suit', 'Kurta Set', 'Accessories', 'Other']
 const STATUSES: Outfit['status'][] = ['available', 'rented', 'maintenance']
 const CHEST_SIZES = ['36"', '38"', '40"', '42"', '44"', '46"', '48"', 'Custom']
 const WAIST_SIZES = ['28"', '30"', '32"', '34"', '36"', '38"', '40"', 'Custom']
 const FIT_TYPES = ['Slim Fit', 'Regular Fit', 'Royal Tailored']
-const COMMON_ACCESSORIES = ['Royal Turban (Safa)', 'Embroidered Dupatta', 'Designer Brooch', 'Pearl Necklace', 'Silk Bow Tie', 'Cummerbund', 'Velvet Mojari', 'Pocket Square']
+const MARKET_DEMANDS = ['High', 'Very High', 'Trending', 'Classic Peak', 'Moderate']
+const COMMON_ACCESSORIES = [
+    'Royal Turban (Safa)', 'Embroidered Dupatta', 'Designer Brooch', 'Pearl Necklace',
+    'Silk Bow Tie', 'Cummerbund', 'Velvet Mojari', 'Pocket Square', 'Kalgi Pin',
+    'Ceremonial Sword Strap', 'Angavastram Stole', 'Marathi Pheta Turban'
+]
 
 function fmtPrice(n: number) {
     return '₹' + n.toLocaleString('en-IN')
+}
+
+function getDemandBadge(demand?: string) {
+    switch (demand) {
+        case 'Very High':
+            return { label: '🔥 Very High Demand', bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: 'rgba(239, 68, 68, 0.3)' }
+        case 'Trending':
+            return { label: '📈 Trending 2026', bg: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', border: 'rgba(168, 85, 247, 0.3)' }
+        case 'Classic Peak':
+            return { label: '👑 Royal Peak', bg: 'rgba(234, 179, 8, 0.15)', color: '#eab308', border: 'rgba(234, 179, 8, 0.3)' }
+        case 'Moderate':
+            return { label: '⚖️ Moderate Demand', bg: 'rgba(107, 114, 128, 0.15)', color: '#9ca3af', border: 'rgba(107, 114, 128, 0.3)' }
+        default:
+            return { label: '⭐ High ROI', bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', border: 'rgba(59, 130, 246, 0.3)' }
+    }
 }
 
 interface OutfitModalProps {
@@ -36,7 +59,7 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
     const blank: Outfit = {
         id: '',
         name: '',
-        category: 'Sherwani',
+        category: 'Sherwanis',
         rentPrice: 5000,
         securityDeposit: 2000,
         status: 'available',
@@ -48,6 +71,9 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
         fitType: 'Regular Fit',
         color: '',
         includedAccessories: [],
+        marketRetailPrice: 35000,
+        marketDemand: 'High',
+        marketTrendNote: 'High wedding season demand with high rental yield.',
     }
 
     React.useEffect(() => {
@@ -122,7 +148,7 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
             <div className="modal" style={{ maxWidth: 640 }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{isEdit ? 'Edit Men\'s Outfit' : 'Add New Men\'s Outfit'}</h2>
+                    <h2 className="modal-title">{isEdit ? 'Edit Garment & Market Details' : 'Add New Inventory Garment'}</h2>
                     <button className="modal-close" onClick={onClose}><X /></button>
                 </div>
 
@@ -142,7 +168,7 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
 
                 <div className="form-row">
                     <div className="form-group">
-                        <label className="form-label">Rent Price (₹) *</label>
+                        <label className="form-label">Rent Price per Event (₹) *</label>
                         <input className="form-input" type="number" value={form.rentPrice || ''} onChange={e => set('rentPrice', Number(e.target.value))} placeholder="e.g. 7500" />
                         {errors.rentPrice && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.rentPrice}</p>}
                     </div>
@@ -150,6 +176,25 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
                         <label className="form-label">Refundable Security Deposit (₹)</label>
                         <input className="form-input" type="number" value={form.securityDeposit || ''} onChange={e => set('securityDeposit', Number(e.target.value))} placeholder="e.g. 2500" />
                     </div>
+                </div>
+
+                {/* Market Info Inputs */}
+                <div className="form-row" style={{ background: 'var(--bg-hover)', padding: 12, borderRadius: 10, border: '1px solid var(--border)', marginBottom: 16 }}>
+                    <div className="form-group">
+                        <label className="form-label" style={{ color: 'var(--accent)', fontWeight: 600 }}>Estimated Retail Market Price (₹)</label>
+                        <input className="form-input" type="number" value={form.marketRetailPrice || ''} onChange={e => set('marketRetailPrice', Number(e.target.value))} placeholder="e.g. 45000" />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" style={{ color: 'var(--accent)', fontWeight: 600 }}>Today's Market Demand</label>
+                        <select className="form-select" value={form.marketDemand || 'High'} onChange={e => set('marketDemand', e.target.value)}>
+                            {MARKET_DEMANDS.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Today's Market Trend & ROI Note</label>
+                    <input className="form-input" value={form.marketTrendNote || ''} onChange={e => set('marketTrendNote', e.target.value)} placeholder="e.g. Top renter for 2026 wedding season with 3.8x ROI" />
                 </div>
 
                 <div className="form-row">
@@ -169,7 +214,7 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
 
                 <div className="form-row">
                     <div className="form-group">
-                        <label className="form-label">Fit Type</label>
+                        <label className="form-label">Fit Profile</label>
                         <select className="form-select" value={form.fitType || 'Regular Fit'} onChange={e => set('fitType', e.target.value)}>
                             {FIT_TYPES.map(f => <option key={f} value={f}>{f}</option>)}
                         </select>
@@ -183,8 +228,8 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
                 </div>
 
                 <div className="form-group">
-                    <label className="form-label">Color / Fabric Finish</label>
-                    <input className="form-input" value={form.color || ''} onChange={e => set('color', e.target.value)} placeholder="e.g. Ivory & Antique Gold" />
+                    <label className="form-label">Color & Fabric Specification</label>
+                    <input className="form-input" value={form.color || ''} onChange={e => set('color', e.target.value)} placeholder="e.g. Ivory Raw Silk & Antique Zardozi Work" />
                 </div>
 
                 {/* Accessories Checklist */}
@@ -217,7 +262,7 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
 
                 {/* Image Section */}
                 <div className="form-group">
-                    <label className="form-label">Outfit Photo *</label>
+                    <label className="form-label">Garment Photo *</label>
 
                     <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                         {(['upload', 'url'] as const).map(tab => (
@@ -321,7 +366,7 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
                                 className="form-input"
                                 value={form.imageUrl}
                                 onChange={e => set('imageUrl', e.target.value)}
-                                placeholder="https://example.com/men-sherwani.jpg"
+                                placeholder="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b"
                             />
                         </div>
                     )}
@@ -358,16 +403,27 @@ function DetailModal({ outfit, onClose, onEdit, onDelete }: DetailModalProps) {
         return () => { document.body.style.overflow = '' }
     }, [])
 
+    const badge = getDemandBadge(outfit.marketDemand)
+    const marginPct = outfit.marketRetailPrice ? Math.round(((outfit.rentPrice * 5) / outfit.marketRetailPrice) * 100) : 85
+
     return (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-            <div className="modal" style={{ maxWidth: 540 }}>
+            <div className="modal" style={{ maxWidth: 580 }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">Men's Garment Details</h2>
+                    <h2 className="modal-title">Garment & Today's Market Specs</h2>
                     <button className="modal-close" onClick={onClose}><X /></button>
                 </div>
 
-                <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 20, aspectRatio: '16/9', background: 'var(--bg-secondary)' }}>
-                    <img src={outfit.imageUrl} alt={outfit.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&q=80' }} />
+                <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 20, aspectRatio: '16/9', background: 'var(--bg-secondary)', position: 'relative' }}>
+                    <img
+                        src={outfit.imageUrl}
+                        alt={outfit.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&q=80' }}
+                    />
+                    <div style={{ position: 'absolute', top: 12, right: 12, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, backdropFilter: 'blur(4px)' }}>
+                        {badge.label}
+                    </div>
                 </div>
 
                 <div className="detail-row">
@@ -375,27 +431,51 @@ function DetailModal({ outfit, onClose, onEdit, onDelete }: DetailModalProps) {
                     <span className="detail-value" style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>{outfit.id}</span>
                 </div>
                 <div className="detail-row">
-                    <span className="detail-key">Name</span>
-                    <span className="detail-value">{outfit.name}</span>
+                    <span className="detail-key">Garment Name</span>
+                    <span className="detail-value" style={{ fontWeight: 700 }}>{outfit.name}</span>
                 </div>
                 <div className="detail-row">
                     <span className="detail-key">Category</span>
                     <span className="detail-value">{outfit.category}</span>
                 </div>
+
+                {/* Today's Market Info Block */}
+                <div style={{ background: 'var(--accent-soft)', borderRadius: 12, padding: '14px 16px', margin: '14px 0', border: '1px solid var(--border-focus)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
+                        <TrendingUp size={16} /> TODAY'S MARKET & RENTAL METRICS
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, textAlign: 'center' }}>
+                        <div style={{ background: 'var(--bg-card)', padding: '8px 10px', borderRadius: 8 }}>
+                            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>RENT PRICE</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--accent)' }}>{fmtPrice(outfit.rentPrice)}</div>
+                        </div>
+                        <div style={{ background: 'var(--bg-card)', padding: '8px 10px', borderRadius: 8 }}>
+                            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>RETAIL VALUE</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>{fmtPrice(outfit.marketRetailPrice || outfit.rentPrice * 5)}</div>
+                        </div>
+                        <div style={{ background: 'var(--bg-card)', padding: '8px 10px', borderRadius: 8 }}>
+                            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>SEASONAL ROI</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--green)' }}>~{marginPct}% Yield</div>
+                        </div>
+                    </div>
+                    {outfit.marketTrendNote && (
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 10, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                            <Sparkles size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }} />
+                            <span>{outfit.marketTrendNote}</span>
+                        </div>
+                    )}
+                </div>
+
                 <div className="detail-row">
-                    <span className="detail-key">Rent Price</span>
-                    <span className="detail-value" style={{ color: 'var(--accent)', fontWeight: 700 }}>{fmtPrice(outfit.rentPrice)}</span>
+                    <span className="detail-key">Refundable Security Deposit</span>
+                    <span className="detail-value" style={{ color: 'var(--green)', fontWeight: 600 }}>{fmtPrice(outfit.securityDeposit || 2000)}</span>
                 </div>
                 <div className="detail-row">
-                    <span className="detail-key">Security Deposit</span>
-                    <span className="detail-value" style={{ color: 'var(--green)' }}>{fmtPrice(outfit.securityDeposit || 2000)}</span>
-                </div>
-                <div className="detail-row">
-                    <span className="detail-key">Status</span>
+                    <span className="detail-key">Current Status</span>
                     <span className={`badge ${outfit.status}`}>{outfit.status.charAt(0).toUpperCase() + outfit.status.slice(1)}</span>
                 </div>
                 <div className="detail-row">
-                    <span className="detail-key">Chest & Waist</span>
+                    <span className="detail-key">Chest & Waist Fit</span>
                     <span className="detail-value">Chest: {outfit.chestSize || '40"'} | Waist: {outfit.waistSize || '34"'}</span>
                 </div>
                 <div className="detail-row">
@@ -406,7 +486,7 @@ function DetailModal({ outfit, onClose, onEdit, onDelete }: DetailModalProps) {
 
                 {outfit.includedAccessories && outfit.includedAccessories.length > 0 && (
                     <div style={{ marginTop: 14 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Included Accessories</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Included Royal Accessories</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                             {outfit.includedAccessories.map(acc => (
                                 <span key={acc} style={{ background: 'var(--accent-soft)', color: 'var(--accent-text)', padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 500 }}>
@@ -442,19 +522,23 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
     const [viewOutfit, setViewOutfit] = useState<Outfit | null>(null)
     const [filterStatus, setFilterStatus] = useState<string>('all')
     const [filterCategory, setFilterCategory] = useState<string>('all')
+    const [filterDemand, setFilterDemand] = useState<string>('all')
 
     const totalOutfits = outfits.length
     const currentlyRented = outfits.filter(o => o.status === 'rented').length
     const todayRevenue = outfits.filter(o => o.status === 'rented').reduce((s, o) => s + o.rentPrice, 0)
+    const totalRetailValuation = outfits.reduce((s, o) => s + (o.marketRetailPrice || o.rentPrice * 5), 0)
 
     const filtered = outfits.filter(o => {
         const matchSearch = !searchQuery ||
             o.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             o.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            o.id.toLowerCase().includes(searchQuery.toLowerCase())
+            o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (o.color && o.color.toLowerCase().includes(searchQuery.toLowerCase()))
         const matchStatus = filterStatus === 'all' || o.status === filterStatus
         const matchCat = filterCategory === 'all' || o.category === filterCategory
-        return matchSearch && matchStatus && matchCat
+        const matchDemand = filterDemand === 'all' || o.marketDemand === filterDemand
+        return matchSearch && matchStatus && matchCat && matchDemand
     })
 
     function handleSave(outfit: Outfit) {
@@ -466,31 +550,82 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
         <div>
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                 <div>
-                    <h1>Men's Wardrobe & Groom Inventory</h1>
-                    <p>Track royal Sherwanis, Indo-Westerns, Jodhpuri Bandhgalas, Tuxedos, Kurta Sets & Accessories</p>
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        Men's Royal Wardrobe & Market Inventory
+                        <span style={{ fontSize: 13, background: 'var(--accent-soft)', color: 'var(--accent)', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
+                            {totalOutfits} Wears
+                        </span>
+                    </h1>
+                    <p>Track Sherwanis, Jodhpuri Bandhgalas, Indo-Western, Kurtas, Jackets, Dhotis, Pathani & Regional Collections with Today's Market Rates</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => { setEditOutfit(null); setShowAdd(true) }}>
                     <Plus style={{ width: 16, height: 16 }} /> Add Men's Outfit
                 </button>
             </div>
 
+            {/* Today's Market Trends & Stats Banner */}
+            <div style={{
+                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%)',
+                border: '1px solid var(--border-focus)',
+                borderRadius: 14,
+                padding: '16px 20px',
+                marginBottom: 24,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 16,
+                alignItems: 'center'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
+                        <ShoppingBag size={22} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Portfolio Retail Value</div>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent)' }}>{fmtPrice(totalRetailValuation)}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Today's estimated market asset value</div>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(16, 185, 129, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--green)' }}>
+                        <TrendingUp size={22} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active Rental Yield</div>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--green)' }}>{fmtPrice(todayRevenue)}</div>
+                        <div style={{ fontSize: 11, color: 'var(--green)' }}>{currentlyRented} Outfits active on events</div>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(234, 179, 8, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#eab308' }}>
+                        <Award size={22} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Today's Market Trend 2026</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Zardozi & Raw Silk High Demand</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Pastels, Velvet & Micro-embroidery</div>
+                    </div>
+                </div>
+            </div>
+
             {/* Stats */}
             <div className="stats-grid-3">
                 <div className="stat-card">
                     <div className="stat-card-header">
-                        <span className="stat-label">Total Collection</span>
+                        <span className="stat-label">Total Wardrobe Count</span>
                         <div className="stat-icon blue"><Box /></div>
                     </div>
                     <div className="stat-value">{totalOutfits}</div>
-                    <div className="stat-sub">Men's rental outfits</div>
+                    <div className="stat-sub">Across 13 specialized categories</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-card-header">
-                        <span className="stat-label">Active Rentals</span>
+                        <span className="stat-label">Active Event Bookings</span>
                         <div className="stat-icon green"><TrendingUp /></div>
                     </div>
                     <div className="stat-value">{currentlyRented}</div>
-                    <div className="stat-sub positive">Out for events</div>
+                    <div className="stat-sub positive">Out for client trials & weddings</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-card-header">
@@ -503,7 +638,7 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
             </div>
 
             {/* Filters */}
-            <div className="filter-bar">
+            <div className="filter-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                 <span className="filter-label">Status:</span>
                 {(['all', ...STATUSES] as string[]).map(s => (
                     <button key={s} onClick={() => setFilterStatus(s)}
@@ -515,8 +650,16 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
                 <span className="filter-label">Category:</span>
                 <select className="form-select" style={{ width: 'auto', padding: '7px 12px', fontSize: 13 }}
                     value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-                    <option value="all">All Categories</option>
+                    <option value="all">All 13 Categories ({totalOutfits})</option>
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+
+                <span style={{ margin: '0 6px', color: 'var(--border)' }}>|</span>
+                <span className="filter-label">Market Demand:</span>
+                <select className="form-select" style={{ width: 'auto', padding: '7px 12px', fontSize: 13 }}
+                    value={filterDemand} onChange={e => setFilterDemand(e.target.value)}>
+                    <option value="all">All Market Demands</option>
+                    {MARKET_DEMANDS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
             </div>
 
@@ -525,49 +668,72 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
                 <div className="card empty-state">
                     <Package />
                     <h3>No Men's outfits found</h3>
-                    <p>Try adjusting your search query or filters.</p>
+                    <p>Try adjusting your search query, category, or market demand filters.</p>
                 </div>
             ) : (
                 <div className="outfit-grid">
-                    {filtered.map(outfit => (
-                        <div key={outfit.id} className="outfit-card">
-                            <div className="outfit-image-wrapper" onClick={() => setViewOutfit(outfit)}>
-                                <img
-                                    src={outfit.imageUrl}
-                                    alt={outfit.name}
-                                    onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&q=80' }}
-                                />
-                                <span className={`outfit-status-badge ${outfit.status}`}>
-                                    {outfit.status.charAt(0).toUpperCase() + outfit.status.slice(1)}
-                                </span>
-                            </div>
-                            <div className="outfit-info">
-                                <div className="outfit-name">{outfit.name}</div>
-                                <div className="outfit-category">
-                                    {outfit.category} • Chest: {outfit.chestSize || outfit.size || '40"'}
+                    {filtered.map(outfit => {
+                        const badge = getDemandBadge(outfit.marketDemand)
+                        return (
+                            <div key={outfit.id} className="outfit-card" style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div className="outfit-image-wrapper" onClick={() => setViewOutfit(outfit)}>
+                                    <img
+                                        src={outfit.imageUrl}
+                                        alt={outfit.name}
+                                        onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&q=80' }}
+                                    />
+                                    <span className={`outfit-status-badge ${outfit.status}`}>
+                                        {outfit.status.charAt(0).toUpperCase() + outfit.status.slice(1)}
+                                    </span>
+                                    <span style={{
+                                        position: 'absolute', bottom: 10, left: 10,
+                                        background: badge.bg, color: badge.color,
+                                        border: `1px solid ${badge.border}`,
+                                        padding: '3px 8px', borderRadius: 12,
+                                        fontSize: 10, fontWeight: 700, backdropFilter: 'blur(4px)'
+                                    }}>
+                                        {badge.label}
+                                    </span>
                                 </div>
-                                {outfit.includedAccessories && outfit.includedAccessories.length > 0 && (
-                                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                        <ShieldCheck size={12} style={{ color: 'var(--green)' }} />
-                                        {outfit.includedAccessories.length} Accessories Included
+                                <div className="outfit-info" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <div className="outfit-name">{outfit.name}</div>
+                                    <div className="outfit-category">
+                                        {outfit.category} • Chest: {outfit.chestSize || outfit.size || '40"'}
                                     </div>
-                                )}
-                                <div className="outfit-footer">
-                                    <div>
-                                        <span className="outfit-price">{fmtPrice(outfit.rentPrice)}</span>
-                                        <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block' }}>
-                                            Dep: {fmtPrice(outfit.securityDeposit || 2000)}
-                                        </span>
-                                    </div>
-                                    <div className="outfit-actions">
-                                        <button className="btn-icon" title="View" onClick={() => setViewOutfit(outfit)}><Eye /></button>
-                                        <button className="btn-icon" title="Edit" onClick={() => { setEditOutfit(outfit); setShowAdd(true) }}><Edit2 /></button>
-                                        {isAdmin && <button className="btn-icon" title="Delete" onClick={() => onDeleteOutfit(outfit.id)} style={{ color: '#ef4444' }}><Trash2 /></button>}
+
+                                    {outfit.marketRetailPrice && (
+                                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                            <Tag size={12} style={{ color: 'var(--accent)' }} />
+                                            Retail: <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{fmtPrice(outfit.marketRetailPrice)}</span>
+                                        </div>
+                                    )}
+
+                                    {outfit.includedAccessories && outfit.includedAccessories.length > 0 && (
+                                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                            <ShieldCheck size={12} style={{ color: 'var(--green)' }} />
+                                            {outfit.includedAccessories.length} Accessories Included
+                                        </div>
+                                    )}
+
+                                    <div style={{ marginTop: 'auto' }}>
+                                        <div className="outfit-footer">
+                                            <div>
+                                                <span className="outfit-price">{fmtPrice(outfit.rentPrice)}</span>
+                                                <span style={{ fontSize: 11, color: 'var(--text-muted)', display: 'block' }}>
+                                                    Dep: {fmtPrice(outfit.securityDeposit || 2000)}
+                                                </span>
+                                            </div>
+                                            <div className="outfit-actions">
+                                                <button className="btn-icon" title="View Details" onClick={() => setViewOutfit(outfit)}><Eye /></button>
+                                                <button className="btn-icon" title="Edit" onClick={() => { setEditOutfit(outfit); setShowAdd(true) }}><Edit2 /></button>
+                                                {isAdmin && <button className="btn-icon" title="Delete" onClick={() => onDeleteOutfit(outfit.id)} style={{ color: '#ef4444' }}><Trash2 /></button>}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
 
