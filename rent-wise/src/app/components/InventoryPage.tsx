@@ -29,23 +29,6 @@ const COMMON_ACCESSORIES = [
     'Ceremonial Sword Strap', 'Angavastram Stole', 'Marathi Pheta Turban'
 ]
 
-export const CATEGORY_TABS = [
-    { id: 'all', label: 'All Collection', icon: '✨' },
-    { id: 'Sherwanis', label: 'Sherwanis', icon: '👑' },
-    { id: 'Jodhpuri / Bandhgala', label: 'Jodhpuri / Bandhgala', icon: '🤵' },
-    { id: 'Indo-Western', label: 'Indo-Western', icon: '👔' },
-    { id: 'Kurtas', label: 'Kurtas', icon: '👕' },
-    { id: 'Kurta Sets', label: 'Kurta Sets', icon: '👖' },
-    { id: 'Jackets', label: 'Jackets & Vests', icon: '🧥' },
-    { id: 'Pathani Wear', label: 'Pathani Wear', icon: '🕌' },
-    { id: 'Bottom Wear', label: 'Bottom Wear', icon: '👖' },
-    { id: 'Dhoti Collection', label: 'Dhoti Collection', icon: '👘' },
-    { id: 'Formal / Occasion Wear', label: 'Formal / Tuxedo', icon: '💼' },
-    { id: 'Wedding Collection', label: 'Wedding Collection', icon: '🎉' },
-    { id: 'Regional Traditional Wear', label: 'Regional Wear', icon: '🌟' },
-    { id: 'Premium Collection', label: 'Premium Collection', icon: '💎' },
-]
-
 export function matchesCategory(garmentCategory: string, selectedFilter: string): boolean {
     if (!selectedFilter || selectedFilter === 'all') return true
     if (!garmentCategory) return false
@@ -718,62 +701,6 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
                     <div className="stat-value">{fmtPrice(todayRevenue)}</div>
                     <div className="stat-sub">Current active bookings</div>
                 </div>
-            </div>
-
-            {/* Interactive Scrollable Category Tabs Bar */}
-            <div style={{
-                display: 'flex',
-                gap: 8,
-                overflowX: 'auto',
-                paddingBottom: 10,
-                marginBottom: 16,
-                marginTop: 20,
-                scrollbarWidth: 'thin'
-            }}>
-                {CATEGORY_TABS.map(tab => {
-                    const count = tab.id === 'all'
-                        ? totalOutfits
-                        : outfits.filter(o => matchesCategory(o.category, tab.id)).length
-                    const active = filterCategory === tab.id
-
-                    return (
-                        <button
-                            key={tab.id}
-                            onClick={() => setFilterCategory(tab.id)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '8px 16px',
-                                borderRadius: 20,
-                                fontSize: 13,
-                                fontWeight: active ? 700 : 500,
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                transition: 'all 0.2s ease',
-                                background: active
-                                    ? 'linear-gradient(135deg, var(--accent) 0%, #2563eb 100%)'
-                                    : 'var(--input-bg)',
-                                color: active ? '#ffffff' : 'var(--text-secondary)',
-                                border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-                                boxShadow: active ? '0 4px 12px rgba(59, 130, 246, 0.3)' : 'none',
-                            }}
-                        >
-                            <span>{tab.icon}</span>
-                            <span>{tab.label}</span>
-                            <span style={{
-                                fontSize: 11,
-                                padding: '2px 7px',
-                                borderRadius: 10,
-                                background: active ? 'rgba(255, 255, 255, 0.25)' : 'var(--accent-soft)',
-                                color: active ? '#ffffff' : 'var(--accent-text)',
-                                fontWeight: 700
-                            }}>
-                                {count}
-                            </span>
-                        </button>
-                    )
-                })}
             </div>
 
             {/* Filters */}
