@@ -50,6 +50,11 @@ function OutfitModal({ outfit, onClose, onSave }: OutfitModalProps) {
         includedAccessories: [],
     }
 
+    React.useEffect(() => {
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = '' }
+    }, [])
+
     const [form, setForm] = useState<Outfit>(outfit ? { ...outfit } : blank)
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [imageTab, setImageTab] = useState<'upload' | 'url'>('upload')
@@ -348,6 +353,11 @@ interface DetailModalProps {
 }
 
 function DetailModal({ outfit, onClose, onEdit, onDelete }: DetailModalProps) {
+    React.useEffect(() => {
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = '' }
+    }, [])
+
     return (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
             <div className="modal" style={{ maxWidth: 540 }}>
@@ -454,9 +464,14 @@ export default function InventoryPage({ outfits, onAddOutfit, onUpdateOutfit, on
 
     return (
         <div>
-            <div className="page-header">
-                <h1>Men's Wardrobe & Groom Inventory</h1>
-                <p>Track royal Sherwanis, Indo-Westerns, Jodhpuri Bandhgalas, Tuxedos, Kurta Sets & Accessories</p>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+                <div>
+                    <h1>Men's Wardrobe & Groom Inventory</h1>
+                    <p>Track royal Sherwanis, Indo-Westerns, Jodhpuri Bandhgalas, Tuxedos, Kurta Sets & Accessories</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => { setEditOutfit(null); setShowAdd(true) }}>
+                    <Plus style={{ width: 16, height: 16 }} /> Add Men's Outfit
+                </button>
             </div>
 
             {/* Stats */}

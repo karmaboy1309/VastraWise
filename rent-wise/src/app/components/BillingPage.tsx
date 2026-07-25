@@ -29,6 +29,11 @@ interface InvoiceModalProps {
 }
 
 function InvoiceModal({ customers, outfits, onClose, onSave }: InvoiceModalProps) {
+    React.useEffect(() => {
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = '' }
+    }, [])
+
     const [customerId, setCustomerId] = useState('')
     const [outfitId, setOutfitId] = useState('')
     const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
