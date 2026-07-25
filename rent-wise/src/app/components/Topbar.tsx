@@ -4,6 +4,7 @@ import { Search, Bell, X, Eye, EyeOff, KeyRound, LogOut, ChevronDown, Shield, Us
 import type { AuthUser } from '../../lib/auth'
 import { changePasswordAPI } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import ThemeToggle from './ThemeToggle'
 
 interface TopbarProps {
   searchQuery: string
@@ -71,7 +72,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   onClick={() => setShow(s => ({ ...s, [key]: !s[key] }))}
-                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center' }}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
                 >
                   {show[key] ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -81,12 +82,12 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
         })}
 
         {error && (
-          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#fca5a5', marginBottom: 16 }}>
+          <div style={{ background: 'var(--red-bg)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--red)', marginBottom: 16 }}>
             {error}
           </div>
         )}
         {success && (
-          <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#6ee7b7', marginBottom: 16 }}>
+          <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--green)', marginBottom: 16 }}>
             {success}
           </div>
         )}
@@ -133,31 +134,30 @@ export default function Topbar({ searchQuery, onSearchChange, user }: TopbarProp
           right: 0;
           width: 260px;
           background: var(--bg-card);
-          border: 1px solid rgba(99,102,241,0.25);
-          border-radius: 16px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.1);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          box-shadow: var(--shadow-modal);
           z-index: 1000;
           overflow: hidden;
-          animation: dropIn 0.18s ease;
+          animation: dropIn 0.15s ease;
         }
         @keyframes dropIn {
-          from { opacity: 0; transform: translateY(-8px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         .profile-header-section {
           padding: 20px;
-          background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
-          border-bottom: 1px solid rgba(255,255,255,0.06);
+          background: var(--accent-soft);
+          border-bottom: 1px solid var(--border);
           display: flex;
           align-items: center;
           gap: 12px;
         }
         .profile-avatar-lg {
           width: 46px; height: 46px; border-radius: 12px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
           display: flex; align-items: center; justify-content: center;
           font-weight: 800; font-size: 16px; color: #fff;
-          box-shadow: 0 4px 12px rgba(99,102,241,0.35);
           flex-shrink: 0;
         }
         .profile-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
@@ -168,26 +168,26 @@ export default function Topbar({ searchQuery, onSearchChange, user }: TopbarProp
           text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;
         }
         .profile-role-badge.admin {
-          background: rgba(99,102,241,0.15); color: #a5b4fc;
-          border: 1px solid rgba(99,102,241,0.3);
+          background: var(--accent-soft); color: var(--accent-text);
+          border: 1px solid rgba(99,102,241,0.2);
         }
         .profile-role-badge.worker {
-          background: rgba(16,185,129,0.12); color: #6ee7b7;
-          border: 1px solid rgba(16,185,129,0.3);
+          background: var(--green-bg); color: var(--green);
+          border: 1px solid rgba(16,185,129,0.2);
         }
         .profile-menu { padding: 8px; }
         .profile-menu-item {
           display: flex; align-items: center; gap: 10px;
-          padding: 10px 12px; border-radius: 10px;
-          cursor: pointer; transition: background 0.15s;
+          padding: 10px 12px; border-radius: 8px;
+          cursor: pointer; transition: background 0.1s;
           font-size: 14px; color: var(--text-secondary);
           background: none; border: none; width: 100%; text-align: left;
+          font-family: inherit;
         }
-        .profile-menu-item:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
-        .profile-menu-item.danger:hover { background: rgba(239,68,68,0.1); color: #fca5a5; }
-        .profile-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 8px; }
+        .profile-menu-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .profile-menu-item.danger:hover { background: var(--red-bg); color: var(--red); }
+        .profile-divider { height: 1px; background: var(--border); margin: 4px 8px; }
         .user-chip { cursor: pointer; user-select: none; }
-        .user-chip:hover .user-avatar { box-shadow: 0 0 0 2px rgba(99,102,241,0.6); }
       `}</style>
 
       <header className="topbar">
@@ -202,6 +202,7 @@ export default function Topbar({ searchQuery, onSearchChange, user }: TopbarProp
         </div>
 
         <div className="topbar-right">
+          <ThemeToggle />
           <button className="notif-btn" title="Notifications">
             <Bell />
             <span className="notif-badge" />
@@ -215,7 +216,7 @@ export default function Topbar({ searchQuery, onSearchChange, user }: TopbarProp
                 <div className="user-name">{user.name}</div>
                 <div className="user-email" style={{ textTransform: 'capitalize' }}>{user.role}</div>
               </div>
-              <ChevronDown size={14} style={{ color: 'rgba(255,255,255,0.3)', marginLeft: 2, transition: 'transform 0.2s', transform: panelOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+              <ChevronDown size={14} style={{ color: 'var(--text-muted)', marginLeft: 2, transition: 'transform 0.2s', transform: panelOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
             </div>
 
             {/* Profile Dropdown Panel */}
