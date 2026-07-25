@@ -268,7 +268,26 @@ node seed-admin.js
 
 ---
 
-### 5️⃣ Run the Application
+### 5️⃣ Seed Mock Business Data (Optional)
+
+To populate the database with mock Outfits, Customers, and Invoices for demonstration and testing:
+```bash
+node seed.js
+```
+*Output:*
+```text
+✅ Connected to MongoDB for seeding
+🗑️  Cleared existing data
+📦 Seeded 6 outfits
+👥 Seeded 6 customers
+🧾 Seeded 5 invoices
+
+✅ Database seeding complete!
+```
+
+---
+
+### 6️⃣ Run the Application
 
 Start both the backend API server and Next.js frontend:
 
@@ -285,6 +304,7 @@ npm run dev
 Open **[http://localhost:3000](http://localhost:3000)** in your browser to launch VastraWise!
 
 <br />
+
 
 ---
 
