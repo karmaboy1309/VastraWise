@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../lib/auth'
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function LoginPage() {
   const { login, user, isLoading } = useAuth()
@@ -42,54 +43,34 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #0a0a0f;
+          background: var(--bg);
           position: relative;
-          overflow: hidden;
           padding: 24px;
+          transition: background 0.3s ease;
         }
-        /* Animated background orbs */
-        .login-page::before {
-          content: '';
+
+        .login-theme-toggle {
           position: absolute;
-          width: 600px;
-          height: 600px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
-          top: -200px;
-          left: -200px;
-          animation: orb1 8s ease-in-out infinite alternate;
+          top: 24px;
+          right: 24px;
+          z-index: 10;
         }
-        .login-page::after {
-          content: '';
-          position: absolute;
-          width: 500px;
-          height: 500px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%);
-          bottom: -150px;
-          right: -150px;
-          animation: orb2 10s ease-in-out infinite alternate;
-        }
-        @keyframes orb1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(60px, 40px) scale(1.1); } }
-        @keyframes orb2 { from { transform: translate(0, 0) scale(1); } to { transform: translate(-50px, -30px) scale(1.15); } }
 
         .login-card {
           position: relative;
           z-index: 1;
           width: 100%;
           max-width: 420px;
-          background: rgba(255,255,255,0.03);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 24px;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 16px;
           padding: 44px 40px;
-          box-shadow: 0 32px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
-          animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+          box-shadow: var(--shadow-modal);
+          animation: cardIn 0.3s ease both;
         }
         @keyframes cardIn {
-          from { opacity: 0; transform: translateY(32px) scale(0.96); }
-          to   { opacity: 1; transform: translateY(0)   scale(1); }
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
 
         /* Logo */
@@ -102,27 +83,26 @@ export default function LoginPage() {
         .login-logo-icon {
           width: 48px;
           height: 48px;
-          border-radius: 14px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          border-radius: 12px;
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 800;
           font-size: 18px;
           color: #fff;
-          box-shadow: 0 8px 24px rgba(99,102,241,0.4);
           flex-shrink: 0;
         }
         .login-logo-text {}
         .login-logo-name {
           font-size: 20px;
           font-weight: 700;
-          color: #f8fafc;
+          color: var(--text-primary);
           letter-spacing: -0.3px;
         }
         .login-logo-sub {
           font-size: 12px;
-          color: rgba(255,255,255,0.4);
+          color: var(--text-muted);
           margin-top: 1px;
         }
 
@@ -130,13 +110,13 @@ export default function LoginPage() {
         .login-heading {
           font-size: 28px;
           font-weight: 700;
-          color: #f8fafc;
+          color: var(--text-primary);
           letter-spacing: -0.5px;
           margin-bottom: 6px;
         }
         .login-subheading {
           font-size: 14px;
-          color: rgba(255,255,255,0.45);
+          color: var(--text-secondary);
           margin-bottom: 32px;
           line-height: 1.5;
         }
@@ -149,7 +129,7 @@ export default function LoginPage() {
           display: block;
           font-size: 13px;
           font-weight: 500;
-          color: rgba(255,255,255,0.65);
+          color: var(--text-secondary);
           margin-bottom: 8px;
           letter-spacing: 0.2px;
         }
@@ -161,33 +141,33 @@ export default function LoginPage() {
         .login-input-icon {
           position: absolute;
           left: 14px;
-          color: rgba(255,255,255,0.3);
+          color: var(--text-muted);
           width: 16px;
           height: 16px;
           flex-shrink: 0;
         }
         .login-input {
           width: 100%;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 12px;
+          background: var(--input-bg);
+          border: 1px solid var(--border);
+          border-radius: 10px;
           padding: 13px 14px 13px 42px;
           font-size: 14px;
-          color: #f8fafc;
+          color: var(--text-primary);
           outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+          transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
           font-family: inherit;
           box-sizing: border-box;
         }
-        .login-input::placeholder { color: rgba(255,255,255,0.22); }
+        .login-input::placeholder { color: var(--text-muted); }
         .login-input:focus {
-          border-color: rgba(99,102,241,0.7);
-          box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-          background: rgba(255,255,255,0.07);
+          border-color: var(--border-focus);
+          box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+          background: var(--input-bg-focus);
         }
         .login-input.error-state {
-          border-color: rgba(239,68,68,0.6);
-          box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+          border-color: rgba(239,68,68,0.5);
+          box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
         }
         .password-toggle {
           position: absolute;
@@ -195,44 +175,44 @@ export default function LoginPage() {
           background: none;
           border: none;
           cursor: pointer;
-          color: rgba(255,255,255,0.35);
+          color: var(--text-secondary);
           padding: 4px;
           display: flex;
           align-items: center;
-          transition: color 0.2s;
+          transition: color 0.15s;
         }
-        .password-toggle:hover { color: rgba(255,255,255,0.65); }
+        .password-toggle:hover { color: var(--text-primary); }
 
         /* Error */
         .login-error {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: rgba(239,68,68,0.1);
-          border: 1px solid rgba(239,68,68,0.3);
+          background: var(--red-bg);
+          border: 1px solid rgba(239,68,68,0.2);
           border-radius: 10px;
           padding: 11px 14px;
           font-size: 13px;
-          color: #fca5a5;
+          color: var(--red);
           margin-bottom: 20px;
-          animation: errIn 0.25s ease both;
+          animation: errIn 0.2s ease both;
         }
-        @keyframes errIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes errIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Submit button */
         .login-btn {
           width: 100%;
           padding: 14px;
-          border-radius: 12px;
+          border-radius: 10px;
           border: none;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: var(--accent);
           color: #fff;
           font-size: 15px;
           font-weight: 600;
           cursor: pointer;
-          transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+          transition: opacity 0.15s, transform 0.1s;
           font-family: inherit;
-          box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+          box-shadow: var(--shadow-sm);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -240,12 +220,11 @@ export default function LoginPage() {
           margin-top: 8px;
         }
         .login-btn:hover:not(:disabled) {
-          opacity: 0.92;
+          opacity: 0.9;
           transform: translateY(-1px);
-          box-shadow: 0 12px 32px rgba(99,102,241,0.45);
         }
         .login-btn:active:not(:disabled) { transform: translateY(0); }
-        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Spinner */
         .login-spinner {
@@ -262,7 +241,7 @@ export default function LoginPage() {
         .login-footer-note {
           text-align: center;
           font-size: 12px;
-          color: rgba(255,255,255,0.25);
+          color: var(--text-muted);
           margin-top: 28px;
           line-height: 1.5;
         }
@@ -280,23 +259,27 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
+          background: var(--bg-card);
+          border: 1px solid var(--border);
           border-radius: 20px;
           padding: 6px 14px;
           font-size: 12px;
-          color: rgba(255,255,255,0.4);
+          color: var(--text-muted);
         }
         .role-dot {
           width: 6px;
           height: 6px;
           border-radius: 50%;
         }
-        .role-dot.admin  { background: #6366f1; }
-        .role-dot.worker { background: #10b981; }
+        .role-dot.admin  { background: var(--accent); }
+        .role-dot.worker { background: var(--green); }
       `}</style>
 
       <div className="login-page">
+        <div className="login-theme-toggle">
+          <ThemeToggle />
+        </div>
+
         <div>
           <div className="login-card">
             {/* Logo */}
