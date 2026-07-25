@@ -7,8 +7,8 @@
    \_//_/ \_\___/ |_| |_|_\/_/ \_\  \_/\_/  |___|___/|___|
 ```
 
-# ✨ VastraWise — Smart Rental Manager
-### *Next-Generation Clothing & Luxury Wardrobe Rental Management Platform*
+# ✨ VastraWise — Men's Wardrobe & Groom Rental Manager
+### *Next-Generation Men's Fashion, Sherwani & Luxury Groom Wear Rental Management Platform*
 
   <p align="center">
     <a href="#-overview">Overview</a> •
@@ -36,9 +36,9 @@
 
 ## 🌟 Overview
 
-**VastraWise** is an enterprise-ready, full-stack rental management system tailored specifically for luxury clothing stores, bridal boutiques, traditional wear (Sherwanis, Sarees, Lehengas), and wardrobe rental businesses.
+**VastraWise** is an enterprise-ready, full-stack rental management system tailored specifically for **Men's Clothing Stores, Royal Groom Wear Boutiques, Traditional Men's Ethnic Outfits (Sherwanis, Indo-Western, Jodhpuri Bandhgalas, Kurta Sets), and Black-Tie Tuxedo Rentals**.
 
-Engineered with a **decoupled architecture** — a high-performance **Next.js frontend** powered by Turbopack paired with an **Express.js & MongoDB Atlas backend** — VastraWise offers automated invoice-to-inventory status syncing, dual-tier Role-Based Access Control (RBAC), and real-time revenue analytics.
+Engineered with a **decoupled MERN architecture** — a high-performance **Next.js frontend** powered by Turbopack paired with an **Express.js & MongoDB Atlas backend** — VastraWise offers automated invoice-to-inventory status syncing, Chest/Waist garment sizing, Trial/Fitting schedule tracking, Refundable Security Deposit management, Included Accessories checklists (Safas, Kalgis, Dupattas, Mojaris), dual-tier Role-Based Access Control (RBAC), and real-time revenue analytics.
 
 <br />
 
@@ -57,11 +57,12 @@ Engineered with a **decoupled architecture** — a high-performance **Next.js fr
 
 ---
 
-### 👗 Wardrobe & Inventory Engine
+### 🤵 Men's Wardrobe & Groom Inventory Engine
 - **Live Status Tracking**: Automatic state lifecycle management across `available`, `rented`, and `maintenance`.
-- **Dynamic Category Management**: Instant filtering across Sherwanis, Sarees, Lehengas, Kurtas, Suits, and custom wear.
-- **Visual Product Showcases**: High-resolution image integration with automated placeholder fallback handling.
-- **Size & Color Specifications**: Granular variant tracking for precise inventory allocation.
+- **Men's Category Focus**: Instant filtering across Sherwani, Indo-Western, Jodhpuri, Tuxedo & Suit, Kurta Set, and Accessories.
+- **Men's Sizing Specifications**: Granular Chest Size (36" - 48"), Waist Size (28" - 40"), and Fit Type (`Slim Fit`, `Regular Fit`, `Royal Tailored`).
+- **Groom Accessory Checklists**: Track included items such as Safa/Turban, Brooch, Dupatta/Stole, Pearl Mala, and Mojaris.
+- **Refundable Security Deposit Tracker**: Monitor active deposit liabilities held vs. refunded.
 
 ---
 
